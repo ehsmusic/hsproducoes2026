@@ -222,7 +222,7 @@ const Dashboard: React.FC = () => {
               Editar Perfil <ChevronRight size={20} />
             </Link>
             {userProfile?.role === UserRole.ADMIN && (
-              <Link to="/users" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-800/50 text-slate-200 font-bold hover:bg-slate-800 transition-all border border-slate-800 active:scale-95">
+              <Link to="/integrantes" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-800/50 text-slate-200 font-bold hover:bg-slate-800 transition-all border border-slate-800 active:scale-95">
                 Equipe & Músicos <Users size={20} />
               </Link>
             )}
