@@ -1,7 +1,5 @@
 {
   "name": "HS Produções - App",
   "description": "Sistema de gestão de eventos e shows para a banda Helder Santos.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "requestFramePermissions": []
 }
