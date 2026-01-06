@@ -30,8 +30,10 @@ const Equipment: React.FC = () => {
 
   useEffect(() => {
     const q = query(collection(db, 'equipamentos'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setItems(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HSEquipment)));
+    // Fix: Cast snapshot to any to ensure docs access if typing is loose
+    const unsub = onSnapshot(q, (snapshot: any) => {
+      // Fix: Cast doc.data() as object to avoid spread type error
+      setItems(snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() as object } as HSEquipment)));
       setLoading(false);
     });
     return () => unsub();

@@ -18,13 +18,16 @@ const Confirmacoes: React.FC = () => {
     // Busca as contratações filtrando pelo ID do integrante logado
     const q = query(collection(db, 'contratacao'), where('integranteId', '==', userProfile.uid));
     
-    const unsub = onSnapshot(q, async (snapshot) => {
-      const contData = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as HSEventContratacao));
+    // Fix: Cast snapshot to any to ensure docs access if typing is loose
+    const unsub = onSnapshot(q, async (snapshot: any) => {
+      // Fix: Cast doc.data() as object to avoid spread type error
+      const contData = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() as object } as HSEventContratacao));
       
       const eventsRef = collection(db, 'events');
       const eventSnap = await getDocs(eventsRef);
       const eventsMap = new Map<string, HSEvent>();
-      eventSnap.docs.forEach(d => eventsMap.set(d.id, { id: d.id, ...d.data() } as HSEvent));
+      // Fix: Cast doc.data() as object to avoid spread type error
+      eventSnap.docs.forEach(d => eventsMap.set(d.id, { id: d.id, ...d.data() as object } as HSEvent));
 
       const joined = contData.map(c => ({
         contratacao: c,

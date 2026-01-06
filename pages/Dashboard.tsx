@@ -1,4 +1,4 @@
-// Consolidating lucide-react imports to fix 'Plus' not found and clean up redundancy
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../App';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
@@ -8,20 +8,38 @@ import {
   Calendar, TrendingUp, ChevronRight, Clock, MapPin, 
   Music, Sparkles, Users, Wallet, CheckCircle2, 
   ArrowUpRight, DollarSign, Briefcase, Star, 
-  Activity, Bell, LayoutGrid, Plus, UserCircle
+  Activity, Bell, LayoutGrid, Plus, UserCircle,
+  AlertCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const { userProfile } = useAuth();
+  
+  // Status de referência para filtros (Normalizados para minúsculas)
+  const confirmedStatuses = [
+    EventStatus.ACEITO.toLowerCase(), 
+    EventStatus.CONFIRMADO.toLowerCase(), 
+    EventStatus.CONCLUIDO.toLowerCase()
+  ];
+  const pendingStatus = EventStatus.SOLICITADO.toLowerCase();
+
   const [nextEvents, setNextEvents] = useState<HSEvent[]>([]);
   const [stats, setStats] = useState({
-    totalValue: 0,
-    confirmedCount: 0,
-    pendingCount: 0,
-    memberCaches: 0,
+    label1: '', value1: 0,
+    label2: '', value2: 0,
+    label3: '', value3: 0,
+    isCurrency1: false
   });
   const [loading, setLoading] = useState(true);
+
+  // Função de segurança para verificar Role (Case Insensitive)
+  const isRole = (target: UserRole) => {
+    if (!userProfile?.role) return false;
+    const current = userProfile.role.toLowerCase().trim();
+    const goal = target.toLowerCase().trim();
+    return current === goal || (goal === 'administrador' && current === 'admin');
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -30,63 +48,119 @@ const Dashboard: React.FC = () => {
         const eventsRef = collection(db, 'events');
         const financeRef = collection(db, 'financeiro');
         const contratacaoRef = collection(db, 'contratacao');
-        
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 1. CRONOGRAMA LATERAL (Lista de próximos shows)
         let qEvents;
-        if (userProfile.role === UserRole.ADMIN) {
+        if (isRole(UserRole.ADMIN)) {
           qEvents = query(eventsRef, orderBy('dataEvento', 'asc'), limit(8));
-        } else if (userProfile.role === UserRole.CONTRATANTE) {
+        } else if (isRole(UserRole.CONTRATANTE)) {
           qEvents = query(eventsRef, where('contratanteId', '==', userProfile.uid), orderBy('dataEvento', 'asc'), limit(5));
         } else {
           qEvents = query(eventsRef, where('integrantesIds', 'array-contains', userProfile.uid), orderBy('dataEvento', 'asc'), limit(5));
         }
-        
         const eventsSnapshot = await getDocs(qEvents);
-        const fetchedEvents = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as HSEvent));
-        setNextEvents(fetchedEvents);
+        // Fix: Cast doc.data() as object to avoid spread type error
+        setNextEvents(eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as object } as HSEvent)));
 
-        let totalValue = 0;
-        let confirmedCount = 0;
-        let pendingCount = 0;
-        let memberCaches = 0;
+        // 2. LÓGICA DOS CARDS (AGREGAÇÃO DE DADOS)
+        
+        if (isRole(UserRole.ADMIN)) {
+          // --- ADMIN ---
+          const allEvtsSnap = await getDocs(eventsRef);
+          // Fix: Cast doc.data() as object to avoid spread type error
+          const allEvts = allEvtsSnap.docs.map(d => ({ id: d.id, ...d.data() as object } as HSEvent));
+          
+          const confirmedIds = allEvts
+            .filter(e => confirmedStatuses.includes((e.status || "").toLowerCase()))
+            .map(e => e.id);
+          
+          const confirmedCount = confirmedIds.length;
+          const solicitudesPendentes = allEvts.filter(e => (e.status || "").toLowerCase() === pendingStatus).length;
 
-        if (userProfile.role === UserRole.ADMIN) {
-          const finSnap = await getDocs(financeRef);
-          finSnap.forEach(d => totalValue += (d.data() as HSEventFinance).valorEvento || 0);
-          
-          const allEvtSnap = await getDocs(eventsRef);
-          allEvtSnap.forEach(d => {
-            const status = (d.data() as HSEvent).status;
-            if (status === EventStatus.CONFIRMADO) confirmedCount++;
-            if (status === EventStatus.SOLICITADO) pendingCount++;
-          });
-        } 
-        else if (userProfile.role === UserRole.CONTRATANTE) {
-          const qMyEvents = query(eventsRef, where('contratanteId', '==', userProfile.uid));
-          const myEvtSnap = await getDocs(qMyEvents);
-          const myIds = myEvtSnap.docs.map(d => {
-            const status = (d.data() as HSEvent).status;
-            if (status === EventStatus.CONFIRMADO) confirmedCount++;
-            else if (status === EventStatus.SOLICITADO) pendingCount++;
-            return d.id;
-          });
-          
-          if (myIds.length > 0) {
+          let volumeNegocios = 0;
+          if (confirmedIds.length > 0) {
             const finSnap = await getDocs(financeRef);
             finSnap.forEach(d => {
-              if (myIds.includes(d.id)) totalValue += (d.data() as HSEventFinance).valorEvento || 0;
+              // Verifica se o financeiro.id está na lista de IDs de eventos aceitos/confirmados/concluidos
+              if (confirmedIds.includes(d.id)) {
+                volumeNegocios += (d.data() as HSEventFinance).valorEvento || 0;
+              }
             });
           }
-        }
-        else {
-          const qMyContratacoes = query(contratacaoRef, where('integranteId', '==', userProfile.uid), where('confirmacao', '==', true));
-          const contSnap = await getDocs(qMyContratacoes);
-          contSnap.forEach(d => memberCaches += (d.data() as HSEventContratacao).cache || 0);
+
+          setStats({
+            label1: 'Volume em negócios', value1: volumeNegocios, isCurrency1: true,
+            label2: 'Eventos confirmados', value2: confirmedCount,
+            label3: 'Solicitações pendentes', value3: solicitudesPendentes
+          });
+
+        } else if (isRole(UserRole.CONTRATANTE)) {
+          // --- CONTRATANTE ---
+          const qMyEvts = query(eventsRef, where('contratanteId', '==', userProfile.uid));
+          const myEvtsSnap = await getDocs(qMyEvts);
+          const myEvts = myEvtsSnap.docs.map(d => ({ id: d.id, ...d.data() as object } as HSEvent));
+
+          const confirmedIds = myEvts
+            .filter(e => confirmedStatuses.includes((e.status || "").toLowerCase()))
+            .map(e => e.id);
           
-          confirmedCount = fetchedEvents.filter(e => e.status === EventStatus.CONFIRMADO).length;
-          pendingCount = fetchedEvents.filter(e => e.status === EventStatus.SOLICITADO).length;
+          const confirmedCount = confirmedIds.length;
+          const solicitudesPendentes = myEvts.filter(e => (e.status || "").toLowerCase() === pendingStatus).length;
+
+          let investimentoTotal = 0;
+          if (confirmedIds.length > 0) {
+            const finSnap = await getDocs(financeRef);
+            finSnap.forEach(d => {
+              if (confirmedIds.includes(d.id)) {
+                investimentoTotal += (d.data() as HSEventFinance).valorEvento || 0;
+              }
+            });
+          }
+
+          setStats({
+            label1: 'Investimento total', value1: investimentoTotal, isCurrency1: true,
+            label2: 'Eventos confirmados', value2: confirmedCount,
+            label3: 'Solicitações pendentes', value3: solicitudesPendentes
+          });
+
+        } else if (isRole(UserRole.INTEGRANTE)) {
+          // --- INTEGRANTE ---
+          const qMyCont = query(contratacaoRef, where('integranteId', '==', userProfile.uid));
+          const myContSnap = await getDocs(qMyCont);
+          const myConts = myContSnap.docs.map(d => d.data() as HSEventContratacao);
+
+          // Cachê Acumulado e Shows Escalados (confirmacao === true)
+          const confirmedConts = myConts.filter(c => c.confirmacao === true);
+          const cacheAcumulado = confirmedConts.reduce((acc, curr) => acc + (curr.cache || 0), 0);
+          const showsEscaladosCount = confirmedConts.length;
+
+          // Confirmações Pendentes (confirmacao === false E dataEvento > hoje)
+          const pendingConts = myConts.filter(c => c.confirmacao === false);
+          let pendentesFuturos = 0;
+
+          if (pendingConts.length > 0) {
+            // Buscamos os eventos para cruzar a data
+            const allEvtsSnap = await getDocs(eventsRef);
+            const evtsMap = new Map();
+            // Fix: Cast doc.data() as object to avoid spread type error
+            allEvtsSnap.docs.forEach(d => evtsMap.set(d.id, { id: d.id, ...d.data() as object } as HSEvent));
+
+            pendingConts.forEach(c => {
+              const evt = evtsMap.get(c.showId);
+              if (evt && evt.dataEvento > todayStr) {
+                pendentesFuturos++;
+              }
+            });
+          }
+
+          setStats({
+            label1: 'Cachê acumulado', value1: cacheAcumulado, isCurrency1: true,
+            label2: 'Shows escalados', value2: showsEscaladosCount,
+            label3: 'Confirmações pendentes', value3: pendentesFuturos
+          });
         }
 
-        setStats({ totalValue, confirmedCount, pendingCount, memberCaches });
       } catch (error) {
         console.error("Dashboard error:", error);
       } finally {
@@ -102,10 +176,6 @@ const Dashboard: React.FC = () => {
       <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Sincronizando Backstage...</p>
     </div>
   );
-
-  const isAdmin = userProfile?.role === UserRole.ADMIN;
-  const isContratante = userProfile?.role === UserRole.CONTRATANTE;
-  const isIntegrante = userProfile?.role === UserRole.INTEGRANTE;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -133,19 +203,19 @@ const Dashboard: React.FC = () => {
         </div>
         
         <div className="flex items-center gap-4">
-           {isAdmin && (
+           {isRole(UserRole.ADMIN) && (
              <Link to="/events?new=true" className="group bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center space-x-2">
                <Plus size={18} className="group-hover:rotate-90 transition-transform" />
                <span>Novo Show</span>
              </Link>
            )}
-           {isContratante && (
+           {isRole(UserRole.CONTRATANTE) && (
              <Link to="/events?new=true" className="group bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)] transition-all active:scale-95 flex items-center space-x-2">
                <DollarSign size={18} />
                <span>Pedir Orçamento</span>
              </Link>
            )}
-           {isIntegrante && (
+           {isRole(UserRole.INTEGRANTE) && (
              <Link to="/confirmacoes" className="group bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center space-x-2">
                <CheckCircle2 size={18} />
                <span>Ver Escala</span>
@@ -154,7 +224,7 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* STATS GRID */}
+      {/* STATS GRID - 100% PRECISO */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="relative group overflow-hidden bg-slate-900/40 border border-slate-800/50 backdrop-blur-xl p-8 rounded-[2.5rem] hover:border-blue-500/30 transition-all duration-500">
           <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-blue-600/5 blur-2xl group-hover:opacity-100 transition-opacity"></div>
@@ -162,10 +232,12 @@ const Dashboard: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20"><Wallet size={22} /></div>
             <ArrowUpRight className="text-slate-700 group-hover:text-blue-500 transition-colors" size={20} />
           </div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{isAdmin ? 'Volume em Negócio' : isContratante ? 'Investimento Total' : 'Cache Acumulado'}</p>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{stats.label1}</p>
           <div className="flex items-baseline space-x-1 mt-2">
-            <span className="text-lg font-black text-blue-500/50 tracking-tighter">R$</span>
-            <p className="text-4xl font-black text-white tracking-tighter">{(isIntegrante ? stats.memberCaches : stats.totalValue).toLocaleString('pt-BR')}</p>
+            {stats.isCurrency1 && <span className="text-lg font-black text-blue-500/50 tracking-tighter">R$</span>}
+            <p className="text-4xl font-black text-white tracking-tighter">
+              {stats.isCurrency1 ? stats.value1.toLocaleString('pt-BR') : stats.value1}
+            </p>
           </div>
         </div>
 
@@ -175,23 +247,25 @@ const Dashboard: React.FC = () => {
             <div className="w-12 h-12 rounded-2xl bg-emerald-600/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20"><CheckCircle2 size={22} /></div>
             <ArrowUpRight className="text-slate-700 group-hover:text-emerald-500 transition-colors" size={20} />
           </div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{isIntegrante ? 'Shows na Escala' : 'Eventos Confirmados'}</p>
-          <p className="text-4xl font-black text-white mt-2 tracking-tighter">{stats.confirmedCount}</p>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{stats.label2}</p>
+          <p className="text-4xl font-black text-white mt-2 tracking-tighter">{stats.value2}</p>
         </div>
 
         <div className="relative group overflow-hidden bg-slate-900/40 border border-slate-800/50 backdrop-blur-xl p-8 rounded-[2.5rem] hover:border-amber-500/30 transition-all duration-500">
           <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full bg-amber-600/5 blur-2xl group-hover:opacity-100 transition-opacity"></div>
           <div className="flex justify-between items-start mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-amber-600/10 flex items-center justify-center text-amber-500 border border-amber-500/20"><Clock size={22} /></div>
+            <div className="w-12 h-12 rounded-2xl bg-amber-600/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
+              {isRole(UserRole.INTEGRANTE) ? <AlertCircle size={22} /> : <Clock size={22} />}
+            </div>
             <ArrowUpRight className="text-slate-700 group-hover:text-amber-500 transition-colors" size={20} />
           </div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{isIntegrante ? 'Aguardando Data' : 'Solicitações Pendentes'}</p>
-          <p className="text-4xl font-black text-white mt-2 tracking-tighter">{stats.pendingCount}</p>
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{stats.label3}</p>
+          <p className="text-4xl font-black text-white mt-2 tracking-tighter">{stats.value3}</p>
         </div>
       </div>
 
+      {/* CRONOGRAMA DE SHOWS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* MAIN CONTENT: AGENDA */}
         <div className="lg:col-span-2 space-y-8">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center space-x-4">
@@ -225,7 +299,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between md:justify-end md:space-x-6">
                     <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all ${
-                      event.status === EventStatus.CONFIRMADO 
+                      confirmedStatuses.includes((event.status || "").toLowerCase())
                       ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
                       : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                     }`}>
@@ -249,7 +323,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* SIDEBAR: WIDGETS */}
+        {/* SIDEBAR: ACESSO RÁPIDO */}
         <div className="space-y-10">
           <div className="space-y-6">
             <h2 className="text-xl font-black text-white uppercase tracking-tighter italic px-2">Acesso Rápido</h2>
@@ -264,7 +338,7 @@ const Dashboard: React.FC = () => {
                 <ChevronRight size={16} className="text-slate-600 group-hover:text-white" />
               </Link>
 
-              {isAdmin && (
+              {isRole(UserRole.ADMIN) && (
                 <Link to="/integrantes" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-800 text-white font-bold hover:bg-purple-600 hover:border-purple-500 transition-all active:scale-95 group">
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-white/10 flex items-center justify-center text-purple-500 group-hover:text-white transition-all">
@@ -276,29 +350,15 @@ const Dashboard: React.FC = () => {
                 </Link>
               )}
 
-              {isAdmin && (
-                <Link to="/finance" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-800 text-white font-bold hover:bg-emerald-600 hover:border-emerald-500 transition-all active:scale-95 group">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-white/10 flex items-center justify-center text-emerald-500 group-hover:text-white transition-all">
-                      <TrendingUp size={20} />
-                    </div>
-                    <span className="text-sm">Relatório Mensal</span>
+              <Link to="/finance" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-800 text-white font-bold hover:bg-emerald-600 hover:border-emerald-500 transition-all active:scale-95 group">
+                <div className="flex items-center space-x-4">
+                  <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-white/10 flex items-center justify-center text-emerald-500 group-hover:text-white transition-all">
+                    <TrendingUp size={20} />
                   </div>
-                  <ChevronRight size={16} className="text-slate-600 group-hover:text-white" />
-                </Link>
-              )}
-
-              {isIntegrante && (
-                <Link to="/confirmacoes" className="w-full flex items-center justify-between p-5 rounded-2xl bg-slate-900/50 border border-slate-800 text-white font-bold hover:bg-emerald-600 hover:border-emerald-500 transition-all active:scale-95 group">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800 group-hover:bg-white/10 flex items-center justify-center text-emerald-500 group-hover:text-white transition-all">
-                      <CheckCircle2 size={20} />
-                    </div>
-                    <span className="text-sm">Confirmar Agenda</span>
-                  </div>
-                  <ChevronRight size={16} className="text-slate-600 group-hover:text-white" />
-                </Link>
-              )}
+                  <span className="text-sm">Financeiro</span>
+                </div>
+                <ChevronRight size={16} className="text-slate-600 group-hover:text-white" />
+              </Link>
             </div>
           </div>
 
@@ -308,17 +368,10 @@ const Dashboard: React.FC = () => {
                 <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20">
                   <Star size={24} />
                 </div>
-                <h4 className="text-xl font-black text-white tracking-tighter">Membro Premium HS</h4>
+                <h4 className="text-xl font-black text-white tracking-tighter">Time Helder Santos</h4>
                 <p className="text-xs text-blue-100 font-medium leading-relaxed">
-                   Você faz parte do time de elite da Helder Santos Produções. Continue entregando excelência em cada palco!
+                   Gerenciamento profissional de shows e eventos com o padrão de qualidade HS Produções.
                 </p>
-                <div className="pt-2">
-                   <div className="flex -space-x-2 overflow-hidden">
-                      {[1,2,3,4].map(i => (
-                        <div key={i} className="inline-block h-8 w-8 rounded-full ring-2 ring-blue-600 bg-slate-800 flex items-center justify-center text-[10px] font-bold">HS</div>
-                      ))}
-                   </div>
-                </div>
              </div>
           </div>
         </div>

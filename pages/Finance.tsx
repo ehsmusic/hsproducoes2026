@@ -42,11 +42,13 @@ const Finance: React.FC = () => {
           let eventsList: HSEvent[] = [];
           if (isAdmin) {
             const eventsSnap = await getDocs(eventsRef);
-            eventsList = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() } as HSEvent));
+            // Fix: Cast doc.data() as object to avoid spread type error
+            eventsList = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() as object } as HSEvent));
           } else {
             const q = query(eventsRef, where('contratanteId', '==', userProfile.uid));
             const eventsSnap = await getDocs(q);
-            eventsList = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() } as HSEvent));
+            // Fix: Cast doc.data() as object to avoid spread type error
+            eventsList = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() as object } as HSEvent));
           }
 
           const financeSnap = await getDocs(financeRef);
@@ -73,7 +75,8 @@ const Finance: React.FC = () => {
           
           const eventSnap = await getDocs(eventsRef);
           const eventsMap = new Map<string, HSEvent>();
-          eventSnap.docs.forEach(d => eventsMap.set(d.id, { id: d.id, ...d.data() } as HSEvent));
+          // Fix: Cast doc.data() as object to avoid spread type error
+          eventSnap.docs.forEach(d => eventsMap.set(d.id, { id: d.id, ...d.data() as object } as HSEvent));
 
           const finSnap = await getDocs(financeRef);
           const financeMap = new Map<string, HSEventFinance>();

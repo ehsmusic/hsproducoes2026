@@ -52,20 +52,23 @@ const FinanceDetail: React.FC = () => {
     if (!id) return;
 
     // Listener do Evento
-    const unsubEvent = onSnapshot(doc(db, 'events', id), (doc) => {
-      if (doc.exists()) setEvent({ id: doc.id, ...doc.data() } as HSEvent);
+    const unsubEvent = onSnapshot(doc(db, 'events', id), (snapshot) => {
+      // Fix: Cast doc.data() as object to avoid spread type error
+      if (snapshot.exists()) setEvent({ id: snapshot.id, ...snapshot.data() as object } as HSEvent);
     });
 
     // Listener do Resumo Financeiro
-    const unsubFinance = onSnapshot(doc(db, 'financeiro', id), (doc) => {
-      if (doc.exists()) setFinance(doc.data() as HSEventFinance);
+    const unsubFinance = onSnapshot(doc(db, 'financeiro', id), (snapshot) => {
+      if (snapshot.exists()) setFinance(snapshot.data() as HSEventFinance);
       setLoading(false);
     });
 
     // Listener da Subcoleção de Movimentações
     const qMov = query(collection(db, 'financeiro', id, 'movimentacoes'), orderBy('dataMovimentacao', 'desc'));
-    const unsubMov = onSnapshot(qMov, (snap) => {
-      setMovimentacoes(snap.docs.map(d => ({ id: d.id, ...d.data() } as Movimentacao)));
+    // Fix: Cast snapshot to any to ensure docs access if typing is loose
+    const unsubMov = onSnapshot(qMov, (snap: any) => {
+      // Fix: Cast doc.data() as object to avoid spread type error
+      setMovimentacoes(snap.docs.map((d: any) => ({ id: d.id, ...d.data() as object } as Movimentacao)));
     });
 
     return () => { unsubEvent(); unsubFinance(); unsubMov(); };
@@ -75,7 +78,8 @@ const FinanceDetail: React.FC = () => {
   const recalculateFinance = async () => {
     if (!id || !finance) return;
     const snap = await getDocs(collection(db, 'financeiro', id, 'movimentacoes'));
-    const totalPago = snap.docs.reduce((acc, curr) => acc + (Number(curr.data().valorMovimentacao) || 0), 0);
+    // Fix: Cast current data to any to access valorMovimentacao property
+    const totalPago = snap.docs.reduce((acc, curr) => acc + (Number((curr.data() as any).valorMovimentacao) || 0), 0);
     const valorContrato = finance.valorEvento || 0;
     const novoSaldo = Math.max(0, valorContrato - totalPago);
     
