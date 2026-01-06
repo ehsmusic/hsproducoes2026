@@ -24,7 +24,8 @@ import {
   Briefcase,
   Speaker,
   DollarSign,
-  Music
+  Music,
+  CheckCircle2
 } from 'lucide-react';
 
 // Components
@@ -38,6 +39,7 @@ import Equipment from './pages/Equipment';
 import Finance from './pages/Finance';
 import FinanceDetail from './pages/FinanceDetail';
 import Profile from './pages/Profile';
+import Confirmacoes from './pages/Confirmacoes';
 
 export const LOGO_URL = "https://i.ibb.co/2YpCydGT/Logo-HS-Metal-3-D-cor-fundo-transparente.png";
 export const DEFAULT_AVATAR = "https://i.ibb.co/pjTnM2NQ/avatar-Sucesso.png";
@@ -128,13 +130,15 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
   const { userProfile, logout } = useAuth();
   const location = useLocation();
 
+  // Links configurados conforme solicitado para Integrante
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: [UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE] },
-    { name: 'Meus Shows', path: '/events', icon: Music, roles: [UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE] },
+    { name: 'Meus Shows', path: '/events', icon: Music, roles: [UserRole.ADMIN, UserRole.CONTRATANTE] },
+    { name: 'Confirmações', path: '/confirmacoes', icon: CheckCircle2, roles: [UserRole.INTEGRANTE] },
     { name: 'Clientes', path: '/clients', icon: Briefcase, roles: [UserRole.ADMIN] },
     { name: 'Integrantes', path: '/integrantes', icon: Users, roles: [UserRole.ADMIN] },
     { name: 'Equipamentos', path: '/equipment', icon: Speaker, roles: [UserRole.ADMIN] },
-    { name: 'Financeiro', path: '/finance', icon: DollarSign, roles: [UserRole.ADMIN, UserRole.CONTRATANTE] },
+    { name: 'Financeiro', path: '/finance', icon: DollarSign, roles: [UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE] },
     { name: 'Meu Perfil', path: '/profile', icon: UserCircle, roles: [UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE] },
   ];
 
@@ -212,11 +216,12 @@ const MainLayout: React.FC = () => {
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
             <Route path="/events/:id" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />
+            <Route path="/confirmacoes" element={<ProtectedRoute allowedRoles={[UserRole.INTEGRANTE]}><Confirmacoes /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Clients /></ProtectedRoute>} />
             <Route path="/integrantes" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Integrantes /></ProtectedRoute>} />
             <Route path="/equipment" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Equipment /></ProtectedRoute>} />
-            <Route path="/finance" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CONTRATANTE]}><Finance /></ProtectedRoute>} />
-            <Route path="/finance/:id" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CONTRATANTE]}><FinanceDetail /></ProtectedRoute>} />
+            <Route path="/finance" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE]}><Finance /></ProtectedRoute>} />
+            <Route path="/finance/:id" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE]}><FinanceDetail /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
