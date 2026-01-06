@@ -61,6 +61,7 @@ export interface HSEventContratacao {
   integranteId: string;
   cache: number;
   confirmacao: boolean;
+  statusContratacao?: 'Pago' | 'Pendente';
   note: string;
 }
 

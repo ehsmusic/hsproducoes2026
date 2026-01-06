@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../App';
 import { HSEvent, HSEventContratacao } from '../types';
-import { CheckCircle2, Calendar, MapPin, Loader2, Music, Sparkles, ChevronRight, Info, Map as MapIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CheckCircle2, Calendar, MapPin, Loader2, Music, Sparkles, ChevronRight, Info, Map as MapIcon, DollarSign } from 'lucide-react';
+import { Link } from 'react-router';
 
 const Confirmacoes: React.FC = () => {
   const { userProfile } = useAuth();
@@ -15,11 +15,10 @@ const Confirmacoes: React.FC = () => {
   useEffect(() => {
     if (!userProfile) return;
 
-    // Busca as contratações filtrando pelo ID do integrante logado
     const q = query(collection(db, 'contratacao'), where('integranteId', '==', userProfile.uid));
     
-    const unsub = onSnapshot(q, async (snapshot: any) => {
-      const contData = snapshot.docs.map((d: any) => ({ ...d.data(), id: d.id } as HSEventContratacao));
+    const unsub = onSnapshot(q, async (snapshot: QuerySnapshot<DocumentData>) => {
+      const contData = snapshot.docs.map((d) => ({ ...d.data(), id: d.id } as HSEventContratacao));
       
       const eventsRef = collection(db, 'events');
       const eventSnap = await getDocs(eventsRef);
@@ -35,7 +34,6 @@ const Confirmacoes: React.FC = () => {
         event: eventsMap.get(c.showId) as HSEvent
       })).filter((item: { event: HSEvent; contratacao: HSEventContratacao }) => item.event !== undefined);
 
-      // Ordenar por data (mais próximos primeiro)
       joined.sort((a: { event: HSEvent; contratacao: HSEventContratacao }, b: { event: HSEvent; contratacao: HSEventContratacao }) => 
         new Date(a.event.dataEvento).getTime() - new Date(b.event.dataEvento).getTime()
       );
@@ -77,7 +75,7 @@ const Confirmacoes: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {items.length > 0 ? items.map(({ event, contratacao }) => (
-          <div key={contratacao.id} className={`group bg-slate-900 border ${contratacao.confirmacao ? 'border-emerald-500/20' : 'border-slate-800'} rounded-[2.5rem] p-8 hover:border-blue-500/30 transition-all shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[350px]`}>
+          <div key={contratacao.id} className={`group bg-slate-900 border ${contratacao.confirmacao ? 'border-emerald-500/20' : 'border-slate-800'} rounded-[2.5rem] p-8 hover:border-blue-500/30 transition-all shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[400px]`}>
             <div className="absolute -right-4 -top-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Music size={120} className="text-blue-500" />
             </div>
@@ -108,6 +106,32 @@ const Confirmacoes: React.FC = () => {
                     <div className="flex items-center mt-1 text-[10px] text-slate-500 font-black uppercase tracking-widest">
                        <MapIcon size={10} className="mr-1.5" /> {event.enderecoEvento || 'Endereço não informado'}
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {/* Box de Cachê */}
+                <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex items-center space-x-4">
+                  <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                    <DollarSign size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Meu Cachê</p>
+                    <p className="text-lg font-black text-white tracking-tight">
+                      R$ {contratacao.cache.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Info de Duração */}
+                <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 flex items-center space-x-4">
+                   <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 border border-blue-500/20">
+                    <Music size={18} />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Tempo Show</p>
+                    <p className="text-lg font-black text-white tracking-tight">{event.duracao}h</p>
                   </div>
                 </div>
               </div>

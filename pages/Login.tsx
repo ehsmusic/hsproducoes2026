@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../App';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router';
 import { Chrome, Mail, Lock, Loader2, ShieldCheck } from 'lucide-react';
 // Fix: Use scoped package @firebase/auth to resolve "no exported member" errors in environments with subpath resolution issues
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from '@firebase/auth';

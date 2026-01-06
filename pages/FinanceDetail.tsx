@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import { 
   doc, onSnapshot, updateDoc, collection, 
   addDoc, deleteDoc, getDocs, serverTimestamp, query, orderBy 

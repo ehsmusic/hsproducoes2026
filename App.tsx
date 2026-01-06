@@ -7,7 +7,7 @@ import {
   Navigate, 
   useLocation,
   Link
-} from 'react-router-dom';
+} from 'react-router';
 import { onAuthStateChanged, signOut, signInWithPopup } from '@firebase/auth';
 import type { User } from '@firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
