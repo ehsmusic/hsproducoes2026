@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { doc, updateDoc, onSnapshot, collection, query, where, getDocs, writeBatch, setDoc, QuerySnapshot, DocumentData } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -61,7 +61,8 @@ const EventDetails: React.FC = () => {
   useEffect(() => {
     const fetchBasics = async () => {
       const usersSnap = await getDocs(collection(db, 'users'));
-      const allUsers = usersSnap.docs.map(d => d.data() as UserProfile);
+      // Importante: Garantir que o uid seja o ID do documento
+      const allUsers = usersSnap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
       setIntegrantes(allUsers);
       setClients(allUsers.filter(u => u.role === UserRole.CONTRATANTE));
       
@@ -199,6 +200,30 @@ const EventDetails: React.FC = () => {
     } catch (err) { console.error("Erro financeiro:", err); alert("Erro ao atualizar dados financeiros."); } finally { setIsSavingFinance(false); }
   };
 
+  // LOGICA PARA ORCAMENTO: Cálculos memorizados para performance e robustez
+  const orcMusicos = useMemo(() => {
+    return contratacoes
+      .map(c => {
+        const u = integrantes.find(i => i.uid === c.integranteId);
+        return u;
+      })
+      .filter(u => u && (u.tipoIntegrante === 'Músico' || u.tipoIntegrante === undefined))
+      .map(u => u?.funcao || 'Músico');
+  }, [contratacoes, integrantes]);
+
+  const orcBailarinas = useMemo(() => {
+    return contratacoes.filter(c => {
+      const u = integrantes.find(i => i.uid === c.integranteId);
+      return u?.tipoIntegrante === 'Dançarina';
+    }).length;
+  }, [contratacoes, integrantes]);
+
+  const orcEquipamentos = useMemo(() => {
+    return allocations
+      .map(a => allEquipment.find(e => e.id === a.equipamentoId)?.displayName)
+      .filter((name): name is string => name !== undefined && name !== null);
+  }, [allocations, allEquipment]);
+
   if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
   if (!event) return null;
 
@@ -214,23 +239,6 @@ const EventDetails: React.FC = () => {
     { id: 'orcamento', label: 'Orçamento', visible: showOrcamentoTab && (isAdmin || isContratante) },
     { id: 'financeiro', label: 'Financeiro', visible: isAdmin || isContratante },
   ].filter(t => t.visible);
-
-  const orcMusicos = contratacoes
-    .map(c => {
-      const u = integrantes.find(i => i.uid === c.integranteId);
-      return { profile: u, status: c.confirmacao };
-    })
-    .filter(item => item.profile?.tipoIntegrante === 'Músico' && item.status === true)
-    .map(item => item.profile?.funcao || 'Músico');
-
-  const orcBailarinas = contratacoes.filter(c => {
-    const u = integrantes.find(i => i.uid === c.integranteId);
-    return u?.tipoIntegrante === 'Dançarina' && c.confirmacao === true;
-  }).length;
-
-  const orcEquipamentos = allocations
-    .map(a => allEquipment.find(e => e.id === a.equipamentoId)?.displayName)
-    .filter((name): name is string => name !== undefined && name !== null);
 
   const calcTotal = financeDoc?.valorEvento || 0;
   const progressPercent = calcTotal > 0 ? Math.min(Math.round(((financeDoc?.valorPago || 0) / calcTotal) * 100), 100) : 0;
@@ -375,13 +383,20 @@ const EventDetails: React.FC = () => {
               <button onClick={() => setShowMemberSelector(false)} className="text-slate-400 hover:text-white transition-all p-2 rounded-xl hover:bg-slate-800"><X size={24} /></button>
             </div>
             <div className="p-8 overflow-y-auto space-y-4 custom-scrollbar flex-1">
-              {integrantes.filter(m => !localContratacoes.some(lc => lc.integranteId === m.uid)).map(member => (
-                <button key={member.uid} onClick={() => { const newCont: HSEventContratacao = { showId: id!, integranteId: member.uid, cache: 0, confirmacao: false, note: '', createdAt: new Date().toISOString() }; setLocalContratacoes([...localContratacoes, newCont]); setShowMemberSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group">
-                  <div className="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0"><img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover" /></div>
-                  <div className="flex-1"><h4 className="font-black text-white">{member.displayName}</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{member.funcao}</p></div>
-                  <Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
-                </button>
+              {integrantes
+                .filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid))
+                .map(member => (
+                  <button key={member.uid} onClick={() => { const newCont: HSEventContratacao = { showId: id!, integranteId: member.uid, cache: 0, confirmacao: false, note: '', createdAt: new Date().toISOString() }; setLocalContratacoes([...localContratacoes, newCont]); setShowMemberSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group">
+                    <div className="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0"><img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover" /></div>
+                    <div className="flex-1"><h4 className="font-black text-white">{member.displayName}</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{member.funcao || member.tipoIntegrante || 'Equipe'}</p></div>
+                    <Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
+                  </button>
               ))}
+              {integrantes.filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid)).length === 0 && (
+                <div className="py-20 text-center opacity-40">
+                  <p className="text-sm font-black uppercase tracking-widest">Nenhum integrante disponível</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
