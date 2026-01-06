@@ -18,24 +18,27 @@ const Confirmacoes: React.FC = () => {
     // Busca as contratações filtrando pelo ID do integrante logado
     const q = query(collection(db, 'contratacao'), where('integranteId', '==', userProfile.uid));
     
-    // Fix: Cast snapshot to any to ensure docs access if typing is loose
     const unsub = onSnapshot(q, async (snapshot: any) => {
-      // Fix: Cast doc.data() as object to avoid spread type error
-      const contData = snapshot.docs.map((d: any) => ({ id: d.id, ...d.data() as object } as HSEventContratacao));
+      const contData = snapshot.docs.map((d: any) => ({ ...d.data(), id: d.id } as HSEventContratacao));
       
       const eventsRef = collection(db, 'events');
       const eventSnap = await getDocs(eventsRef);
       const eventsMap = new Map<string, HSEvent>();
-      // Fix: Cast doc.data() as object to avoid spread type error
-      eventSnap.docs.forEach(d => eventsMap.set(d.id, { id: d.id, ...d.data() as object } as HSEvent));
+      
+      eventSnap.docs.forEach(d => {
+        const data = d.data();
+        eventsMap.set(d.id, { ...data, id: d.id } as HSEvent);
+      });
 
-      const joined = contData.map(c => ({
+      const joined = contData.map((c: HSEventContratacao) => ({
         contratacao: c,
-        event: eventsMap.get(c.showId)!
-      })).filter(item => item.event !== undefined);
+        event: eventsMap.get(c.showId) as HSEvent
+      })).filter((item: { event: HSEvent; contratacao: HSEventContratacao }) => item.event !== undefined);
 
       // Ordenar por data (mais próximos primeiro)
-      joined.sort((a, b) => new Date(a.event.dataEvento).getTime() - new Date(b.event.dataEvento).getTime());
+      joined.sort((a: { event: HSEvent; contratacao: HSEventContratacao }, b: { event: HSEvent; contratacao: HSEventContratacao }) => 
+        new Date(a.event.dataEvento).getTime() - new Date(b.event.dataEvento).getTime()
+      );
       
       setItems(joined);
       setLoading(false);
@@ -102,7 +105,7 @@ const Confirmacoes: React.FC = () => {
                   <MapPin size={16} className="mr-3 text-blue-500 mt-0.5 flex-shrink-0" /> 
                   <div className="min-w-0">
                     <p className="truncate">{event.local}</p>
-                    <div className="flex items-center mt-1 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                    <div className="flex items-center mt-1 text-[10px] text-slate-500 font-black uppercase tracking-widest">
                        <MapIcon size={10} className="mr-1.5" /> {event.enderecoEvento || 'Endereço não informado'}
                     </div>
                   </div>
