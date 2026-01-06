@@ -229,7 +229,11 @@ const EventDetails: React.FC = () => {
     return u?.tipoIntegrante === 'Dançarina' && c.confirmacao === true;
   }).length;
 
-  const orcEquipamentos = allocations.map(a => allEquipment.find(e => e.id === a.equipamentoId)?.displayName).filter(Boolean);
+  // Correção do erro TS2322: usando um type guard explícito para garantir string[]
+  const orcEquipamentos = allocations
+    .map(a => allEquipment.find(e => e.id === a.equipamentoId)?.displayName)
+    .filter((name): name is string => name !== undefined && name !== null);
+
   const calcTotal = financeDoc?.valorEvento || 0;
   const progressPercent = calcTotal > 0 ? Math.min(Math.round(((financeDoc?.valorPago || 0) / calcTotal) * 100), 100) : 0;
 
@@ -253,7 +257,7 @@ const EventDetails: React.FC = () => {
              <button onClick={() => handleUpdateStatus(EventStatus.ORCAMENTO_GERADO)} className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"><Sparkles size={16} /><span>Gerar Orçamento</span></button>
           )}
           {canEditEvent && (
-            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 px-6 py-3 bg-slate-800 border border-slate-700 text-white rounded-2xl text-xs font-black uppercase transition-all shadow-xl">
+            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center space-x-2 px-6 py-3 bg-slate-800 border border-slate-800 text-white rounded-2xl text-xs font-black uppercase transition-all shadow-xl">
               <Edit2 size={16} /><span>Editar Evento</span>
             </button>
           )}
