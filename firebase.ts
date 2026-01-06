@@ -1,9 +1,8 @@
 
-// Fix: Use scoped packages to resolve "no exported member" errors in environments with strict or outdated module resolution
-import { initializeApp } from '@firebase/app';
-import { getAuth, GoogleAuthProvider } from '@firebase/auth';
-import { getFirestore } from '@firebase/firestore';
-import { getStorage } from '@firebase/storage';
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBLvj8kP0LurmmVhfJmlJk4O68uX_kSqCU",
@@ -14,7 +13,7 @@ const firebaseConfig = {
   appId: "1:134346996950:web:eb27022a83ae7a7e841d77"
 };
 
-// Initialize Firebase with scoped modular SDK
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
