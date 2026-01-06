@@ -205,7 +205,6 @@ const EventDetails: React.FC = () => {
   const showGenerateBudgetBtn = isAdmin && event.status === EventStatus.EM_ANALISE && (financeDoc?.valorEvento || 0) > 0;
   const showOrcamentoTab = [EventStatus.ORCAMENTO_GERADO, EventStatus.ACEITO, EventStatus.RECUSADO, EventStatus.CONFIRMADO, EventStatus.CONCLUIDO].includes(event.status);
 
-  // Regra solicitada: Admin sempre vê, Contratante só vê se status for "Solicitado", Integrante nunca vê.
   const canEditEvent = isAdmin || (isContratante && event.status === EventStatus.SOLICITADO);
 
   const tabs = [
@@ -229,7 +228,6 @@ const EventDetails: React.FC = () => {
     return u?.tipoIntegrante === 'Dançarina' && c.confirmacao === true;
   }).length;
 
-  // Correção do erro TS2322: usando um type guard explícito para garantir string[]
   const orcEquipamentos = allocations
     .map(a => allEquipment.find(e => e.id === a.equipamentoId)?.displayName)
     .filter((name): name is string => name !== undefined && name !== null);
@@ -282,7 +280,6 @@ const EventDetails: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-8">
-          
           {activeTab === 'info' && <EventInfoWidget event={event} />}
 
           {activeTab === 'equipe' && (isAdmin || isIntegrante) && (
@@ -338,10 +335,23 @@ const EventDetails: React.FC = () => {
           )}
         </div>
 
-        <div className="space-y-8"><div className="bg-slate-900 border border-slate-800 rounded-[3rem] p-10 space-y-8 shadow-2xl"><h3 className="text-xl font-black text-white uppercase tracking-tighter">Workflow</h3><div className="space-y-8 relative before:absolute before:inset-y-0 before:left-3.5 before:w-0.5 before:bg-slate-800">{['Solicitado', 'Em análise', 'Orçamento gerado', 'Aceito', 'Confirmado'].map((s) => (<div key={s} className="relative flex items-start space-x-5"><div className={`w-8 h-8 rounded-full flex items-center justify-center ring-4 ring-slate-900 relative z-10 transition-colors ${event.status === s ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-600'}`}>{event.status === s ? <CheckCircle2 size={16} /> : <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />}</div><p className={`text-sm font-black uppercase tracking-widest transition-colors ${event.status === s ? 'text-white' : 'text-slate-600'}`}>{s}</p></div>))}</div></div></div>
+        <div className="space-y-8">
+          <div className="bg-slate-900 border border-slate-800 rounded-[3rem] p-10 space-y-8 shadow-2xl">
+            <h3 className="text-xl font-black text-white uppercase tracking-tighter">Workflow</h3>
+            <div className="space-y-8 relative before:absolute before:inset-y-0 before:left-3.5 before:w-0.5 before:bg-slate-800">
+              {['Solicitado', 'Em análise', 'Orçamento gerado', 'Aceito', 'Confirmado'].map((s) => (
+                <div key={s} className="relative flex items-start space-x-5">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ring-4 ring-slate-900 relative z-10 transition-colors ${event.status === s ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-600'}`}>
+                    {event.status === s ? <CheckCircle2 size={16} /> : <div className="w-1.5 h-1.5 bg-slate-700 rounded-full" />}
+                  </div>
+                  <p className={`text-sm font-black uppercase tracking-widest transition-colors ${event.status === s ? 'text-white' : 'text-slate-600'}`}>{s}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Modal Edição de Evento usando Widget */}
       {isEditModalOpen && canEditEvent && (
         <EventFormWidget 
           title="Editar Show"
@@ -356,14 +366,46 @@ const EventDetails: React.FC = () => {
         />
       )}
       
-      {/* Seletores de membros e equipamentos */}
       {showMemberSelector && isAdmin && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6"><div className="fixed inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowMemberSelector(false)}></div><div className="relative bg-slate-900 border border-slate-800 rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-fade-in"><div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 sticky top-0"><h3 className="text-xl font-black text-white uppercase tracking-tighter">Escalar Membro</h3><button onClick={() => setShowMemberSelector(false)} className="text-slate-400 hover:text-white transition-all"><X size={24} /></button></div><div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">{integrantes.filter(m => !localContratacoes.some(lc => lc.integranteId === m.uid)).map(member => (<button key={member.uid} onClick={() => { const newCont: HSEventContratacao = { showId: id!, integranteId: member.uid, cache: 0, confirmacao: false, note: '', createdAt: new Date().toISOString() }; setLocalContratacoes([...localContratacoes, newCont]); setShowMemberSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group shadow-lg"><div className="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden"><img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover" /></div><div className="flex-1"><h4 className="font-black text-white">{member.displayName}</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{member.funcao}</p></div><Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" /></button>))}</div></div></div>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0" onClick={() => setShowMemberSelector(false)}></div>
+          <div className="relative bg-slate-900 border border-slate-800 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 flex-shrink-0">
+              <h3 className="text-xl font-black text-white uppercase tracking-tighter">Escalar Membro</h3>
+              <button onClick={() => setShowMemberSelector(false)} className="text-slate-400 hover:text-white transition-all p-2 rounded-xl hover:bg-slate-800"><X size={24} /></button>
+            </div>
+            <div className="p-8 overflow-y-auto space-y-4 custom-scrollbar flex-1">
+              {integrantes.filter(m => !localContratacoes.some(lc => lc.integranteId === m.uid)).map(member => (
+                <button key={member.uid} onClick={() => { const newCont: HSEventContratacao = { showId: id!, integranteId: member.uid, cache: 0, confirmacao: false, note: '', createdAt: new Date().toISOString() }; setLocalContratacoes([...localContratacoes, newCont]); setShowMemberSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group">
+                  <div className="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex-shrink-0"><img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover" /></div>
+                  <div className="flex-1"><h4 className="font-black text-white">{member.displayName}</h4><p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">{member.funcao}</p></div>
+                  <Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {showEquipSelector && isAdmin && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6"><div className="fixed inset-0 bg-black/95 backdrop-blur-xl" onClick={() => setShowEquipSelector(false)}></div><div className="relative bg-slate-900 border border-slate-800 rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-fade-in"><div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 sticky top-0"><h3 className="text-xl font-black text-white uppercase tracking-tighter">Alocar Item</h3><button onClick={() => setShowEquipSelector(false)} className="text-slate-400 hover:text-white transition-all"><X size={24} /></button></div><div className="p-8 max-h-[60vh] overflow-y-auto space-y-4">{allEquipment.filter(e => !localAllocations.some(la => la.equipamentoId === e.id)).map(equip => (
-          <button key={equip.id} onClick={() => { const newAlloc: HSEquipmentAllocation = { showId: id!, equipamentoId: equip.id!, valorAlocacao: 0, note: '', createdAt: new Date().toISOString() }; setLocalAllocations([...localAllocations, newAlloc]); setShowEquipSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group shadow-lg"><div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center text-slate-600">{equip.photoUrlEquipamento ? <img src={equip.photoUrlEquipamento} className="w-full h-full object-cover" /> : <Speaker size={24} />}</div><div className="flex-1"><h4 className="font-black text-white">{equip.displayName}</h4></div><Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" /></button>))}</div></div></div>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="fixed inset-0" onClick={() => setShowEquipSelector(false)}></div>
+          <div className="relative bg-slate-900 border border-slate-800 rounded-[2.5rem] w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 flex-shrink-0">
+              <h3 className="text-xl font-black text-white uppercase tracking-tighter">Alocar Item</h3>
+              <button onClick={() => setShowEquipSelector(false)} className="text-slate-400 hover:text-white transition-all p-2 rounded-xl hover:bg-slate-800"><X size={24} /></button>
+            </div>
+            <div className="p-8 overflow-y-auto space-y-4 custom-scrollbar flex-1">
+              {allEquipment.filter(e => !localAllocations.some(la => la.equipamentoId === e.id)).map(equip => (
+                <button key={equip.id} onClick={() => { const newAlloc: HSEquipmentAllocation = { showId: id!, equipamentoId: equip.id!, valorAlocacao: 0, note: '', createdAt: new Date().toISOString() }; setLocalAllocations([...localAllocations, newAlloc]); setShowEquipSelector(false); }} className="w-full flex items-center space-x-5 p-5 bg-slate-950 border border-slate-800 rounded-2xl hover:border-blue-500 transition-all text-left group">
+                  <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center text-slate-600 flex-shrink-0">{equip.photoUrlEquipamento ? <img src={equip.photoUrlEquipamento} className="w-full h-full object-cover" /> : <Speaker size={24} />}</div>
+                  <div className="flex-1"><h4 className="font-black text-white">{equip.displayName}</h4></div>
+                  <Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
