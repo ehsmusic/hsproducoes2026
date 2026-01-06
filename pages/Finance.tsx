@@ -5,9 +5,8 @@ import { db } from '../firebase';
 import { useAuth } from '../App';
 import { UserRole, HSEvent, HSEventFinance, HSEventContratacao, EventStatus } from '../types';
 import { 
-  DollarSign, TrendingUp, CreditCard, Clock, 
-  Loader2, Wallet, MapPin, CheckCircle2, ShieldAlert,
-  Sparkles, ChevronRight, Check
+  DollarSign, TrendingUp, Loader2, Wallet, MapPin, 
+  Sparkles, ChevronRight, Check, X, Clock
 } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -25,6 +24,7 @@ const Finance: React.FC = () => {
   const isContratante = userProfile?.role === UserRole.CONTRATANTE;
   const isIntegrante = userProfile?.role === UserRole.INTEGRANTE;
 
+  // Status de eventos considerados "Válidos" para soma de acumulado e a receber
   const validShowStatuses = [
     EventStatus.ACEITO.toLowerCase(),
     EventStatus.CONFIRMADO.toLowerCase(),
@@ -44,7 +44,6 @@ const Finance: React.FC = () => {
         const contratacaoRef = collection(db, 'contratacao');
 
         if (isAdmin || isContratante) {
-          // Lógica existente para Admin/Contratante
           let eventsList: HSEvent[] = [];
           if (isAdmin) {
             const eventsSnap = await getDocs(eventsRef);
@@ -76,7 +75,6 @@ const Finance: React.FC = () => {
           setStats(totals);
           setLoading(false);
         } else if (isIntegrante) {
-          // Lógica para Integrante com Real-time para o Toggle
           const qCont = query(contratacaoRef, where('integranteId', '==', userProfile.uid));
           
           unsub = onSnapshot(qCont, async (snapshot) => {
@@ -97,20 +95,20 @@ const Finance: React.FC = () => {
               };
             }).filter(Boolean) as any[];
 
-            // Cálculos baseados nas regras solicitadas
+            // Cálculos baseados nas novas regras:
             const totals = joinedData.reduce((acc, curr) => {
               const cache = curr.memberCache || 0;
               const isPago = curr.statusContratacao === 'Pago';
               const eventStatusValid = validShowStatuses.includes((curr.event.status || "").toLowerCase());
 
               return {
-                // "Já recebido": todos os caches com status pago
+                // "Já recebido": calcule todos os caches com o status pago
                 totalRecebido: acc.totalRecebido + (isPago ? cache : 0),
                 
-                // "A receber": caches pendentes + status evento Confirmado/Concluido/Aceito
+                // "A receber": caches com status pendente E status evento "Confirmado", "Concluído", "Aceito"
                 totalPendente: acc.totalPendente + (!isPago && eventStatusValid ? cache : 0),
                 
-                // "Cachê acumulado": todos os caches onde evento é Confirmado/Concluido/Aceito (independente do pgmt)
+                // "Cachê acumulado": soma todos os caches independente do statusContratacao, mas o evento tem que ser Confirmado/Concluido/Aceito
                 totalGeral: acc.totalGeral + (eventStatusValid ? cache : 0)
               };
             }, { totalGeral: 0, totalRecebido: 0, totalPendente: 0 });
@@ -146,7 +144,7 @@ const Finance: React.FC = () => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-32 space-y-6">
       <Loader2 className="animate-spin text-blue-500" size={64} />
-      <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px]">Calculando Ativos...</p>
+      <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px]">Sincronizando Fluxo...</p>
     </div>
   );
 
@@ -159,7 +157,7 @@ const Finance: React.FC = () => {
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">Fluxo de Caixa</h1>
         <p className="text-slate-500 font-bold mt-1 text-sm">
-          {isIntegrante ? 'Controle seus recebimentos. Clique no status para marcar como pago.' : 'Gestão de faturamento e recebíveis HS.'}
+          {isIntegrante ? 'Gerencie seus recebimentos. Clique no botão de status para marcar como pago.' : 'Gestão de faturamento e recebíveis HS.'}
         </p>
       </div>
 
@@ -168,11 +166,11 @@ const Finance: React.FC = () => {
           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{isIntegrante ? 'Cachê Acumulado' : 'Total Geral'}</p>
           <p className="text-3xl font-black text-white tracking-tighter">R$ {stats.totalGeral.toLocaleString('pt-BR')}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl border-b-4 border-b-emerald-500/50">
           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{isIntegrante ? 'Já Recebido' : 'Liquidado'}</p>
           <p className="text-3xl font-black text-emerald-500 tracking-tighter">R$ {stats.totalRecebido.toLocaleString('pt-BR')}</p>
         </div>
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl border-b-4 border-b-amber-500/50">
           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{isIntegrante ? 'A Receber' : 'Pendente'}</p>
           <p className="text-3xl font-black text-amber-500 tracking-tighter">R$ {stats.totalPendente.toLocaleString('pt-BR')}</p>
         </div>
@@ -180,38 +178,26 @@ const Finance: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {financeItems.map(({ event, finance, memberCache, contratacaoId, statusContratacao }) => {
-          const isQuitado = isIntegrante 
-            ? statusContratacao === 'Pago' 
-            : finance?.statusPagamento === 'Quitado';
+          const isPago = statusContratacao === 'Pago';
+          const isQuitadoAdmin = finance?.statusPagamento === 'Quitado';
 
           return (
-            <div key={event.id} className="bg-slate-900 border border-slate-800 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all shadow-2xl flex flex-col justify-between">
+            <div key={event.id} className="bg-slate-900 border border-slate-800 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all shadow-2xl flex flex-col justify-between group">
               <div className="flex justify-between items-start mb-6">
                 <div className="min-w-0">
-                  <h3 className="text-xl font-black text-white tracking-tighter truncate">{event.titulo}</h3>
-                  <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mt-1 flex items-center">
+                  <h3 className="text-xl font-black text-white tracking-tighter truncate group-hover:text-blue-400 transition-colors">{event.titulo}</h3>
+                  <div className="flex items-center text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">
                     <MapPin size={10} className="mr-1" /> {event.local}
-                  </p>
-                  <p className="text-[8px] text-slate-600 font-bold uppercase tracking-widest mt-1">
-                    Show {event.status}
-                  </p>
+                  </div>
+                  <div className="mt-2 inline-flex px-2 py-0.5 rounded-md bg-slate-950 border border-slate-800 text-[8px] font-black uppercase text-slate-600">
+                    Evento {event.status}
+                  </div>
                 </div>
-                
-                {isIntegrante ? (
-                  <button 
-                    onClick={() => togglePaymentStatus(contratacaoId!, statusContratacao!)}
-                    className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all flex items-center space-x-2 ${
-                      isQuitado 
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                    }`}
-                  >
-                    {isQuitado && <Check size={10} />}
-                    <span>{isQuitado ? 'Pago' : 'Pendente'}</span>
-                  </button>
-                ) : (
+
+                {/* Status Badge para Admin/Contratante */}
+                {!isIntegrante && (
                   <span className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
-                    isQuitado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                    isQuitadoAdmin ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                   }`}>
                     {finance?.statusPagamento || 'Em aberto'}
                   </span>
@@ -220,15 +206,40 @@ const Finance: React.FC = () => {
 
               <div className="flex justify-between items-end border-t border-slate-800/50 pt-6">
                 <div>
-                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Cachê Registrado</p>
-                  <p className="text-2xl font-black text-white tracking-tighter">R$ {(isIntegrante ? memberCache : finance?.valorEvento)?.toLocaleString('pt-BR')}</p>
+                  <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Valor do Cachê</p>
+                  <p className="text-2xl font-black text-white tracking-tighter">
+                    R$ {(isIntegrante ? memberCache : finance?.valorEvento)?.toLocaleString('pt-BR')}
+                  </p>
                 </div>
-                {isAdmin || isContratante ? (
-                  <Link to={`/finance/${event.id}`} className="p-4 bg-slate-800 text-blue-500 rounded-2xl hover:bg-blue-600 hover:text-white transition-all">
-                    <ChevronRight size={20} />
-                  </Link>
+                
+                {isIntegrante ? (
+                  /* Botão Toggle para Integrante (Substitui a seta) */
+                  <button 
+                    onClick={() => togglePaymentStatus(contratacaoId!, statusContratacao!)}
+                    className={`flex items-center space-x-3 px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-95 border shadow-xl ${
+                      isPago 
+                      ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500' 
+                      : 'bg-slate-800 text-amber-500 border-amber-500/30 hover:bg-slate-700'
+                    }`}
+                  >
+                    {isPago ? (
+                      <>
+                        <Check size={16} strokeWidth={3} />
+                        <span>Pago</span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock size={16} strokeWidth={3} />
+                        <span>Pendente</span>
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  <Link to={`/events/${event.id}`} className="p-4 bg-slate-800 text-slate-500 rounded-2xl hover:bg-blue-600 hover:text-white transition-all" title="Ver Detalhes do Show">
+                  /* Botão de Detalhes para Admin/Contratante */
+                  <Link 
+                    to={isAdmin ? `/finance/${event.id}` : `/events/${event.id}`} 
+                    className="p-4 bg-slate-800 text-blue-500 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-lg"
+                  >
                     <ChevronRight size={20} />
                   </Link>
                 )}
@@ -236,6 +247,13 @@ const Finance: React.FC = () => {
             </div>
           );
         })}
+        
+        {financeItems.length === 0 && (
+          <div className="col-span-full py-32 bg-slate-950/40 border-2 border-dashed border-slate-900 rounded-[3rem] text-center">
+            <DollarSign className="mx-auto text-slate-800 mb-4" size={48} />
+            <p className="text-slate-500 font-black uppercase tracking-widest text-sm">Nenhum registro financeiro encontrado</p>
+          </div>
+        )}
       </div>
     </div>
   );
