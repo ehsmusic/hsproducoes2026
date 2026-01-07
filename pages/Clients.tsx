@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, getDocs, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserProfile, UserRole } from '../types';
-import { Briefcase, Search, MoreVertical, Loader2, User, Phone, Mail, Trash2, Edit2, X, Save, MapPin } from 'lucide-react';
+// Added Save to the imports from lucide-react
+import { Briefcase, Search, Loader2, Mail, Phone, MapPin, Trash2, Edit2, X, ChevronRight, Save } from 'lucide-react';
 import { useAuth } from '../App';
+import { Link } from 'react-router-dom';
 
 const Clients: React.FC = () => {
   const { userProfile: currentUser } = useAuth();
@@ -98,43 +100,50 @@ const Clients: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map(client => (
-            <div key={client.uid} className="bg-slate-900 border border-slate-800 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all group shadow-2xl">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center space-x-5">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 overflow-hidden shadow-inner">
-                    <img src={client.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">{client.displayName}</h3>
-                    <div className="flex items-center text-xs font-black text-blue-500 uppercase tracking-widest mt-1">
-                      <Briefcase size={12} className="mr-1.5" /> Cliente Ativo
+            <div key={client.uid} className="bg-slate-900 border border-slate-800 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all group shadow-2xl flex flex-col justify-between h-full">
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center space-x-5">
+                    <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 overflow-hidden shadow-inner">
+                      <img src={client.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-white tracking-tight">{client.displayName}</h3>
+                      <div className="flex items-center text-xs font-black text-blue-500 uppercase tracking-widest mt-1">
+                        <Briefcase size={12} className="mr-1.5" /> Cliente Ativo
+                      </div>
                     </div>
                   </div>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleEditClick(client)}
+                      className="p-3 bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white rounded-2xl border border-slate-700 transition-all active:scale-90"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                  )}
                 </div>
-                {isAdmin && (
-                  <button 
-                    onClick={() => handleEditClick(client)}
-                    className="p-3 bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white rounded-2xl border border-slate-700 transition-all active:scale-90"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                )}
-              </div>
-              
-              <div className="space-y-4 mb-8">
-                <div className="flex items-center text-sm font-bold text-slate-500">
-                  <Mail size={16} className="mr-3 text-slate-700" /> {client.email}
-                </div>
-                <div className="flex items-center text-sm font-bold text-slate-500">
-                  <Phone size={16} className="mr-3 text-slate-700" /> {client.phoneNumber || "Não informado"}
-                </div>
-                <div className="flex items-center text-sm font-bold text-slate-500">
-                  <MapPin size={16} className="mr-3 text-slate-700" /> {client.endereco || "Endereço não informado"}
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center text-sm font-bold text-slate-500">
+                    <Mail size={16} className="mr-3 text-slate-700 flex-shrink-0" /> <span className="truncate">{client.email}</span>
+                  </div>
+                  <div className="flex items-center text-sm font-bold text-slate-500">
+                    <Phone size={16} className="mr-3 text-slate-700 flex-shrink-0" /> {client.phoneNumber || "Não informado"}
+                  </div>
+                  <div className="flex items-center text-sm font-bold text-slate-500">
+                    <MapPin size={16} className="mr-3 text-slate-700 flex-shrink-0" /> <span className="truncate">{client.endereco || "Endereço não informado"}</span>
+                  </div>
                 </div>
               </div>
 
               <div className="flex gap-4 pt-4 border-t border-slate-800/50">
-                <button className="flex-1 py-3 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all">Ver Histórico</button>
+                <Link 
+                  to={`/clients/${client.uid}`}
+                  className="flex-1 py-3 bg-slate-800 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all text-center flex items-center justify-center"
+                >
+                  Ver Histórico
+                </Link>
                 {isAdmin && (
                   <button 
                     onClick={() => handleDelete(client.uid)}
@@ -182,7 +191,7 @@ const Clients: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">WhatsApp</label>
                     <input 
-                      value={editFormData.phoneNumber}
+                      value={editFormData.phoneNumber || ''}
                       onChange={e => setEditFormData({...editFormData, phoneNumber: e.target.value})}
                       className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none text-white font-bold"
                     />
@@ -193,7 +202,7 @@ const Clients: React.FC = () => {
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Chave PIX</label>
                     <input 
-                      value={editFormData.pixKey}
+                      value={editFormData.pixKey || ''}
                       onChange={e => setEditFormData({...editFormData, pixKey: e.target.value})}
                       className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none text-white font-bold"
                     />
@@ -203,7 +212,7 @@ const Clients: React.FC = () => {
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Endereço Residencial/Comercial</label>
                     <textarea 
                       rows={3}
-                      value={editFormData.endereco}
+                      value={editFormData.endereco || ''}
                       onChange={e => setEditFormData({...editFormData, endereco: e.target.value})}
                       className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl outline-none text-white font-bold resize-none"
                     />

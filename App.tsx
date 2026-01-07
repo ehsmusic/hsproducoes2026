@@ -7,7 +7,7 @@ import {
   Navigate, 
   useLocation,
   Link
-} from 'react-router';
+} from 'react-router-dom';
 import { onAuthStateChanged, signOut, signInWithPopup } from '@firebase/auth';
 import type { User } from '@firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -34,6 +34,7 @@ import Dashboard from './pages/Dashboard';
 import Events from './pages/Events';
 import EventDetails from './pages/EventDetails';
 import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
 import Integrantes from './pages/Integrantes';
 import Equipment from './pages/Equipment';
 import Finance from './pages/Finance';
@@ -130,7 +131,6 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
   const { userProfile, logout } = useAuth();
   const location = useLocation();
 
-  // Links configurados conforme solicitado para Integrante
   const links = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard, roles: [UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE] },
     { name: 'Meus Shows', path: '/events', icon: Music, roles: [UserRole.ADMIN, UserRole.CONTRATANTE] },
@@ -218,6 +218,7 @@ const MainLayout: React.FC = () => {
             <Route path="/events/:id" element={<ProtectedRoute><EventDetails /></ProtectedRoute>} />
             <Route path="/confirmacoes" element={<ProtectedRoute allowedRoles={[UserRole.INTEGRANTE]}><Confirmacoes /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Clients /></ProtectedRoute>} />
+            <Route path="/clients/:id" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><ClientDetail /></ProtectedRoute>} />
             <Route path="/integrantes" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Integrantes /></ProtectedRoute>} />
             <Route path="/equipment" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]}><Equipment /></ProtectedRoute>} />
             <Route path="/finance" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.CONTRATANTE, UserRole.INTEGRANTE]}><Finance /></ProtectedRoute>} />
