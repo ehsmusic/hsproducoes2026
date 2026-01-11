@@ -34,8 +34,8 @@ const EventFormWidget: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex justify-center animate-fade-in overflow-hidden">
       
-      {/* Painel Centralizado - Forçado a ocupar 100% da altura da tela (h-full) */}
-      <div className="w-full md:w-[80vw] h-full flex flex-col bg-slate-950 border-x border-slate-800 shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
+      {/* Painel Centralizado - Forçado a ocupar 100% da altura da tela (h-full / 100dvh) */}
+      <div className="w-full md:w-[90vw] lg:w-[80vw] h-[100dvh] flex flex-col bg-slate-950 border-x border-slate-800 shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
         
         {/* Header Fixo */}
         <header className="flex-shrink-0 bg-slate-900 border-b border-slate-800 px-6 md:px-12 py-6 flex items-center justify-between shadow-2xl z-20">
@@ -69,9 +69,9 @@ const EventFormWidget: React.FC<Props> = ({
           </div>
         </header>
 
-        {/* Conteúdo com Scroll - Área Principal */}
+        {/* Conteúdo com Scroll - Área Principal com flex-1 para preencher o espaço */}
         <main className="flex-1 overflow-y-auto bg-slate-950 custom-scrollbar relative z-10">
-          <div className="max-w-4xl mx-auto px-6 py-12 md:py-20">
+          <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
             
             <form id="main-event-form" onSubmit={onSubmit} className="space-y-16">
               
