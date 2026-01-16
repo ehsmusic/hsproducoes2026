@@ -42,7 +42,7 @@ import FinanceDetail from './pages/FinanceDetail';
 import Profile from './pages/Profile';
 import Confirmacoes from './pages/Confirmacoes';
 
-export const LOGO_URL = "https://i.ibb.co/2YpCydGT/Logo-HS-Metal-3-D-cor-fundo-transparente.png";
+export const LOGO_URL = "https://res.cloudinary.com/dvq0tmbil/image/upload/v1768574843/Logo_HS_Metal_3D_cor_fundo_transparente_fnahvs.png";
 export const DEFAULT_AVATAR = "https://i.ibb.co/pjTnM2NQ/avatar-Sucesso.png";
 
 interface AuthContextType {

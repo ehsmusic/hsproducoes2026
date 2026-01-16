@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../App';
+import { useAuth, LOGO_URL } from '../App';
 import { useNavigate, useLocation } from 'react-router';
 import { Chrome, Mail, Lock, Loader2, ShieldCheck, KeyRound, CheckCircle2 } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from '@firebase/auth';
 import { auth } from '../firebase';
-
-// Caminho relativo à raiz do servidor para a pasta assets
-const LOGO_URL = "./assets/logo.png";
 
 const Login: React.FC = () => {
   const { loginWithGoogle, currentUser } = useAuth();
@@ -100,8 +97,7 @@ const Login: React.FC = () => {
               alt="HS Produções" 
               className="w-48 mb-12 drop-shadow-2xl object-contain" 
               onError={(e) => {
-                // Fallback caso o caminho assets/logo.png falhe por cache ou erro de carregamento
-                console.error("Erro ao carregar logo local");
+                console.error("Erro ao carregar logo da URL especificada");
               }}
             />
             <h1 className="text-4xl font-black text-white leading-tight mb-6">
