@@ -6,7 +6,8 @@ import { Chrome, Mail, Lock, Loader2, ShieldCheck, KeyRound, CheckCircle2 } from
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from '@firebase/auth';
 import { auth } from '../firebase';
 
-const LOGO_URL = "https://i.ibb.co/2YpCydGT/Logo-HS-Metal-3-D-cor-fundo-transparente.png";
+// Caminho relativo à raiz do servidor para a pasta assets
+const LOGO_URL = "./assets/logo.png";
 
 const Login: React.FC = () => {
   const { loginWithGoogle, currentUser } = useAuth();
@@ -94,7 +95,15 @@ const Login: React.FC = () => {
         {/* Lado Esquerdo - Branding */}
         <div className="hidden md:flex flex-col justify-between p-12 bg-gradient-to-br from-blue-600/10 to-transparent">
           <div>
-            <img src={LOGO_URL} alt="HS Produções" className="w-48 mb-12 drop-shadow-2xl" />
+            <img 
+              src={LOGO_URL} 
+              alt="HS Produções" 
+              className="w-48 mb-12 drop-shadow-2xl object-contain" 
+              onError={(e) => {
+                // Fallback caso o caminho assets/logo.png falhe por cache ou erro de carregamento
+                console.error("Erro ao carregar logo local");
+              }}
+            />
             <h1 className="text-4xl font-black text-white leading-tight mb-6">
               Gerencie seus shows com <span className="text-blue-500">precisão cirúrgica.</span>
             </h1>
@@ -111,7 +120,7 @@ const Login: React.FC = () => {
         {/* Lado Direito - Form */}
         <div className="p-8 sm:p-12 md:p-16 flex flex-col justify-center">
           <div className="md:hidden flex justify-center mb-10">
-            <img src={LOGO_URL} alt="HS Logo" className="w-32" />
+            <img src={LOGO_URL} alt="HS Logo" className="w-32 object-contain" />
           </div>
 
           <div className="mb-10 text-center md:text-left">

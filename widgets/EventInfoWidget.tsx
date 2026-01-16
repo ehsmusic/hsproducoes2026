@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HSEvent } from '../types';
-import { Calendar, Clock, Users, MapPin, Utensils, Sparkles, AlignLeft, Briefcase } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, Utensils, Sparkles, AlignLeft, Briefcase, FileText, Download } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -34,6 +34,31 @@ const EventInfoWidget: React.FC<Props> = ({ event }) => {
 
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Bloco de Ação de Contrato - Aparece se tiver a URL */}
+      {event.contractUrl && (
+        <div className="bg-gradient-to-r from-emerald-600/20 to-blue-600/10 border border-emerald-500/20 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl animate-fade-in">
+          <div className="flex items-center space-x-6 text-center md:text-left">
+            <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500 shadow-xl border border-emerald-500/20">
+              <FileText size={32} />
+            </div>
+            <div>
+              <h4 className="text-xl font-black text-white uppercase tracking-tighter italic">Contrato Disponível</h4>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">O documento jurídico oficial foi gerado e assinado.</p>
+            </div>
+          </div>
+          <a 
+            href={event.contractUrl} 
+            target="_blank" 
+            rel="noreferrer"
+            className="w-full md:w-auto flex items-center justify-center space-x-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95"
+          >
+            <Download size={18} />
+            <span>Baixar Contrato PDF</span>
+          </a>
+        </div>
+      )}
+
+      {/* Grid de Informações Básicas */}
       <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 shadow-2xl">
          <div className="space-y-8">
             <div className="flex items-start space-x-5">
@@ -88,6 +113,7 @@ const EventInfoWidget: React.FC<Props> = ({ event }) => {
          </div>
       </div>
 
+      {/* Cerimonial se for Casamento */}
       {event.tipo === 'Casamento' && (event.cerimonialista || event.localCerimonia) && (
         <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 space-y-8 shadow-2xl">
            <h3 className="text-sm font-black text-blue-500 uppercase tracking-widest flex items-center"><Sparkles size={18} className="mr-3" /> Detalhes da Cerimônia</h3>
@@ -104,6 +130,7 @@ const EventInfoWidget: React.FC<Props> = ({ event }) => {
         </div>
       )}
 
+      {/* Observações */}
       <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 space-y-6 shadow-2xl">
          <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center"><AlignLeft size={18} className="mr-3" /> Observações e Briefing</h3>
          <div className="bg-slate-950/40 p-8 rounded-3xl border border-slate-800 shadow-inner">

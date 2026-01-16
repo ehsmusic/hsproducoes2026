@@ -16,16 +16,17 @@ import EventEstruturaWidget from '../widgets/EventEstruturaWidget';
 import EventOrcamentoWidget from '../widgets/EventOrcamentoWidget';
 import EventFinanceiroWidget from '../widgets/EventFinanceiroWidget';
 import EventFormWidget from '../widgets/EventFormWidget';
+import EventContratoWidget from '../widgets/EventContratoWidget';
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userProfile } = useAuth();
   
   const [event, setEvent] = useState<HSEvent | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'equipe' | 'estrutura' | 'financeiro' | 'orcamento'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'equipe' | 'estrutura' | 'financeiro' | 'orcamento' | 'contrato'>('info');
   
   const [integrantes, setIntegrantes] = useState<UserProfile[]>([]);
   const [contratacoes, setContratacoes] = useState<HSEventContratacao[]>([]);
@@ -53,7 +54,7 @@ const EventDetails: React.FC = () => {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['info', 'equipe', 'estrutura', 'financeiro', 'orcamento'].includes(tabParam)) {
+    if (tabParam && ['info', 'equipe', 'estrutura', 'financeiro', 'orcamento', 'contrato'].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [searchParams]);
@@ -61,7 +62,6 @@ const EventDetails: React.FC = () => {
   useEffect(() => {
     const fetchBasics = async () => {
       const usersSnap = await getDocs(collection(db, 'users'));
-      // Importante: Garantir que o uid seja o ID do documento
       const allUsers = usersSnap.docs.map(d => ({ ...d.data(), uid: d.id } as UserProfile));
       setIntegrantes(allUsers);
       setClients(allUsers.filter(u => u.role === UserRole.CONTRATANTE));
@@ -200,13 +200,9 @@ const EventDetails: React.FC = () => {
     } catch (err) { console.error("Erro financeiro:", err); alert("Erro ao atualizar dados financeiros."); } finally { setIsSavingFinance(false); }
   };
 
-  // LOGICA PARA ORCAMENTO: Cálculos memorizados para performance e robustez
   const orcMusicos = useMemo(() => {
     return contratacoes
-      .map(c => {
-        const u = integrantes.find(i => i.uid === c.integranteId);
-        return u;
-      })
+      .map(c => integrantes.find(i => i.uid === c.integranteId))
       .filter(u => u && (u.tipoIntegrante === 'Músico' || u.tipoIntegrante === undefined))
       .map(u => u?.funcao || 'Músico');
   }, [contratacoes, integrantes]);
@@ -225,10 +221,16 @@ const EventDetails: React.FC = () => {
   }, [allocations, allEquipment]);
 
   if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="animate-spin text-blue-600" size={40} /></div>;
-  if (!event) return null;
+  if (!event || !userProfile) return null;
 
   const showGenerateBudgetBtn = isAdmin && event.status === EventStatus.EM_ANALISE && (financeDoc?.valorEvento || 0) > 0;
   const showOrcamentoTab = [EventStatus.ORCAMENTO_GERADO, EventStatus.ACEITO, EventStatus.RECUSADO, EventStatus.CONFIRMADO, EventStatus.CONCLUIDO].includes(event.status);
+
+  // REGRAS DE VISIBILIDADE DO CONTRATO: Integrantes NÃO veem.
+  const canSeeContract = !isIntegrante && (
+    isAdmin ? [EventStatus.ACEITO, EventStatus.CONFIRMADO, EventStatus.CONCLUIDO].includes(event.status)
+           : (isContratante && [EventStatus.CONFIRMADO, EventStatus.CONCLUIDO].includes(event.status))
+  );
 
   const canEditEvent = isAdmin || (isContratante && event.status === EventStatus.SOLICITADO);
 
@@ -237,6 +239,7 @@ const EventDetails: React.FC = () => {
     { id: 'equipe', label: 'Equipe', visible: isAdmin || isIntegrante },
     { id: 'estrutura', label: 'Estrutura', visible: isAdmin || isIntegrante },
     { id: 'orcamento', label: 'Orçamento', visible: showOrcamentoTab && (isAdmin || isContratante) },
+    { id: 'contrato', label: 'Contrato', visible: canSeeContract },
     { id: 'financeiro', label: 'Financeiro', visible: isAdmin || isContratante },
   ].filter(t => t.visible);
 
@@ -328,6 +331,16 @@ const EventDetails: React.FC = () => {
             />
           )}
 
+          {activeTab === 'contrato' && canSeeContract && (
+            <EventContratoWidget 
+              event={event}
+              userProfile={userProfile}
+              financeDoc={financeDoc}
+              equipeNomes={orcMusicos}
+              onSignComplete={() => setActiveTab('info')}
+            />
+          )}
+
           {activeTab === 'financeiro' && (isAdmin || isContratante) && (
             <EventFinanceiroWidget 
               isAdmin={isAdmin}
@@ -392,11 +405,6 @@ const EventDetails: React.FC = () => {
                     <Plus size={20} className="text-slate-700 group-hover:text-blue-500 transition-colors" />
                   </button>
               ))}
-              {integrantes.filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid)).length === 0 && (
-                <div className="py-20 text-center opacity-40">
-                  <p className="text-sm font-black uppercase tracking-widest">Nenhum integrante disponível</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
