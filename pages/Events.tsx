@@ -96,7 +96,7 @@ const Events: React.FC = () => {
       setIsModalOpen(false);
       setSearchParams({});
       setFormData({
-        titulo: '', tipo: 'Casamento', duracao: 2, dataEvento: '', haraEvento: '',
+        titulo: '', tipo: 'Casamento', duracao: 2, dataEvento: '', horaEvento: '',
         local: '', enderecoEvento: '', publicoEstimado: 100, somContratado: false,
         alimentacaoInclusa: false, cerimonialista: '', localCerimonia: '',
         observacoes: '', status: EventStatus.SOLICITADO,
