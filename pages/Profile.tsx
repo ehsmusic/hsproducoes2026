@@ -7,7 +7,7 @@ import { UserRole, TipoIntegrante } from '../types';
 import { 
   UserCircle, Mail, MapPin, Shield, Save, 
   Loader2, CheckCircle, Camera, Music, Star, 
-  Phone, Hash
+  Phone, Hash, ChevronRight
 } from 'lucide-react';
 
 const CLOUD_NAME = "dvq0tmbil";
@@ -125,29 +125,29 @@ const Profile: React.FC = () => {
   const isIntegrante = userProfile?.role === UserRole.INTEGRANTE;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-20 px-4 md:px-0">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="max-w-4xl mx-auto space-y-12 animate-fade-in pb-20">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
         <div>
-          <div className="flex items-center space-x-3 text-blue-500 mb-2">
-            <UserCircle size={18} />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Gerenciamento de Identidade</span>
+          <div className="flex items-center space-x-3 text-blue-600 mb-2">
+            <UserCircle size={16} />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Gestão de Identidade HS</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">Meu Perfil</h1>
-          <p className="text-slate-500 font-bold mt-2 text-sm">Atualize suas informações profissionais no ecossistema HS.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Meu Perfil</h1>
+          <p className="text-slate-500 font-bold mt-2 text-sm">Atualize suas credenciais e informações de contato.</p>
         </div>
       </div>
 
-      <div className="bg-slate-900/40 rounded-[3rem] border border-slate-800 overflow-hidden shadow-2xl backdrop-blur-xl">
-        {/* Banner Area */}
-        <div className="bg-gradient-to-r from-blue-900/40 via-slate-900 to-slate-950 h-48 relative">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/10 to-transparent"></div>
+      <div className="bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)]">
+        {/* Banner Area (Clean Light) */}
+        <div className="bg-gradient-to-r from-blue-50 via-white to-slate-50 h-56 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent"></div>
           
           {/* Avatar Position */}
-          <div className="absolute -bottom-16 left-8 md:left-12 group">
-            <div className="relative w-40 h-40 rounded-[2.5rem] bg-slate-950 p-1.5 border-4 border-slate-900 shadow-2xl overflow-hidden">
+          <div className="absolute -bottom-16 left-8 md:left-16 group">
+            <div className="relative w-44 h-44 rounded-[2.5rem] bg-white p-2 border border-slate-100 shadow-2xl overflow-hidden">
               {uploading && (
-                <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                  <Loader2 className="animate-spin text-blue-500" size={32} />
+                <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                  <Loader2 className="animate-spin text-blue-600" size={32} />
                 </div>
               )}
               <img 
@@ -155,7 +155,7 @@ const Profile: React.FC = () => {
                 alt="Avatar" 
                 className="w-full h-full object-cover rounded-[2rem] transition-transform duration-700 group-hover:scale-110" 
               />
-              <label className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]">
+              <label className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]">
                 <Camera size={24} className="text-white mb-2" />
                 <span className="text-[9px] font-black text-white uppercase tracking-widest">Alterar Foto</span>
                 <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={uploading} />
@@ -164,62 +164,66 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSave} className="pt-24 p-8 md:p-12 space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Nome Completo */}
+        <form onSubmit={handleSave} className="pt-24 p-8 md:p-16 space-y-12">
+          {/* Nome e Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Nome Completo *</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo Artístico</label>
               <input 
                 required
                 type="text" 
                 value={formData.displayName}
                 onChange={e => setFormData({...formData, displayName: e.target.value})}
-                className="w-full px-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-white font-bold transition-all"
-                placeholder="Seu nome artístico ou oficial"
+                className="w-full px-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 font-bold transition-all text-base placeholder-slate-300"
+                placeholder="Ex: Helder Santos"
               />
             </div>
 
-            {/* E-mail (Read Only) */}
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">E-mail de Acesso</label>
-              <div className="relative">
-                <Mail size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700" />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail Corporativo (Login)</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300">
+                  <Mail size={22} />
+                </div>
                 <input 
                   type="email" 
                   disabled
                   value={userProfile?.email}
-                  className="w-full pl-14 pr-6 py-5 bg-slate-950/20 border border-slate-900 rounded-[1.5rem] text-slate-600 font-bold cursor-not-allowed italic"
+                  className="w-full pl-16 pr-8 py-6 bg-slate-100/50 border border-slate-200 rounded-[1.8rem] text-slate-400 font-bold cursor-not-allowed italic text-base"
                 />
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Whatsapp */}
+          {/* WhatsApp e CPF */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">WhatsApp</label>
-              <div className="relative">
-                <Phone size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700" />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp para Logística</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                  <Phone size={22} />
+                </div>
                 <input 
                   type="text" 
                   value={formData.phoneNumber}
                   onChange={e => setFormData({...formData, phoneNumber: maskPhone(e.target.value)})}
-                  className="w-full pl-14 pr-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-white font-bold transition-all"
+                  className="w-full pl-16 pr-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 font-bold transition-all text-base placeholder-slate-300"
                   placeholder="(00) 00000-0000"
                 />
               </div>
             </div>
 
-            {/* CPF */}
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">CPF (Fins Contratuais)</label>
-              <div className="relative">
-                <Hash size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700" />
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">CPF (Obrigatório p/ Contratos)</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                  <Hash size={22} />
+                </div>
                 <input 
                   type="text" 
                   value={formData.pixKey}
                   onChange={e => setFormData({...formData, pixKey: maskCPF(e.target.value)})}
-                  className="w-full pl-14 pr-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-white font-bold transition-all"
+                  className="w-full pl-16 pr-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 font-bold transition-all text-base placeholder-slate-300"
                   placeholder="000.000.000-00"
                 />
               </div>
@@ -228,33 +232,36 @@ const Profile: React.FC = () => {
 
           {/* Endereço */}
           <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Endereço Residencial</label>
-            <div className="relative">
-              <MapPin size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-700" />
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Endereço Residencial</label>
+            <div className="relative group">
+              <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                <MapPin size={22} />
+              </div>
               <input 
                 type="text" 
                 placeholder="Rua, Número, Bairro, Cidade - UF"
                 value={formData.endereco}
                 onChange={e => setFormData({...formData, endereco: e.target.value})}
-                className="w-full pl-14 pr-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-white font-bold transition-all"
+                className="w-full pl-16 pr-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 font-bold transition-all text-base placeholder-slate-300"
               />
             </div>
           </div>
 
-          {/* Integrante Logic Section */}
+          {/* Seção Integrante (Destaque Suave) */}
           {isIntegrante && (
-            <div className="p-8 md:p-10 bg-blue-600/5 border border-blue-500/10 rounded-[2.5rem] space-y-8 animate-fade-in">
-              <h3 className="text-sm font-black text-blue-400 uppercase tracking-[0.3em] flex items-center">
-                <Music size={18} className="mr-3" /> Especialização HS
-              </h3>
+            <div className="p-10 bg-blue-50 border border-blue-100 rounded-[2.5rem] space-y-10 animate-fade-in">
+              <div className="flex items-center space-x-3 text-blue-600">
+                <Music size={18} />
+                <h3 className="text-xs font-black uppercase tracking-[0.3em]">Perfil Técnico HS</h3>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Tipo de Integrante</label>
+                  <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Tipo de Membro</label>
                   <select 
                     value={formData.tipoIntegrante}
                     onChange={e => setFormData({...formData, tipoIntegrante: e.target.value as TipoIntegrante})}
-                    className="w-full px-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none text-white font-bold appearance-none cursor-pointer focus:border-blue-500"
+                    className="w-full px-8 py-6 bg-white border border-blue-200 rounded-[1.5rem] outline-none text-slate-900 font-bold appearance-none cursor-pointer focus:border-blue-500 shadow-sm"
                   >
                     <option value="Músico">Músico</option>
                     <option value="Dançarina">Dançarina</option>
@@ -264,13 +271,13 @@ const Profile: React.FC = () => {
 
                 {formData.tipoIntegrante !== 'Dançarina' && (
                   <div className="space-y-3 animate-fade-in">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Função / Instrumento</label>
+                    <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Função Artística</label>
                     <input 
                       type="text" 
-                      placeholder="Ex: Baterista, Técnico de Som..."
+                      placeholder="Ex: Baterista, Guitarrista..."
                       value={formData.funcao}
                       onChange={e => setFormData({...formData, funcao: e.target.value})}
-                      className="w-full px-6 py-5 bg-slate-950/50 border border-slate-800 rounded-[1.5rem] outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-white font-bold transition-all placeholder-slate-800"
+                      className="w-full px-8 py-6 bg-white border border-blue-200 rounded-[1.5rem] outline-none focus:border-blue-500 text-slate-900 font-bold transition-all placeholder-slate-300 shadow-sm"
                     />
                   </div>
                 )}
@@ -278,13 +285,13 @@ const Profile: React.FC = () => {
             </div>
           )}
 
-          {/* Footer Actions */}
-          <div className="pt-10 flex flex-col sm:flex-row items-center justify-between gap-8 border-t border-slate-800">
+          {/* Footer e Salvamento */}
+          <div className="pt-12 flex flex-col sm:flex-row items-center justify-between gap-10 border-t border-slate-100">
             <div className="w-full sm:w-auto">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 mb-2 block">Nível de Acesso</label>
-              <div className="flex items-center space-x-3 bg-slate-800/30 px-6 py-3 rounded-2xl border border-slate-800">
-                <Shield size={16} className="text-amber-500" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-3 block">Autorização de Sistema</label>
+              <div className="flex items-center space-x-3 bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+                <Shield size={16} className="text-blue-600" />
+                <span className="text-[11px] font-black uppercase tracking-[0.1em] text-slate-600">
                   {userProfile?.role}
                 </span>
               </div>
@@ -293,8 +300,8 @@ const Profile: React.FC = () => {
             <button 
               type="submit"
               disabled={loading || uploading}
-              className={`w-full sm:w-auto flex items-center justify-center space-x-4 px-16 py-6 rounded-[2rem] font-black text-xl transition-all shadow-2xl active:scale-[0.98] disabled:opacity-50 ${
-                success ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-500'
+              className={`w-full sm:w-auto flex items-center justify-center space-x-4 px-16 py-7 rounded-[2rem] font-black text-lg transition-all shadow-2xl active:scale-[0.98] disabled:opacity-50 ${
+                success ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/20'
               }`}
             >
               {loading ? (
@@ -304,10 +311,23 @@ const Profile: React.FC = () => {
               ) : (
                 <Save size={24} />
               )}
-              <span>{success ? 'Perfil Atualizado' : 'Salvar Alterações'}</span>
+              <span>{success ? 'Dados Atualizados' : 'Confirmar Alterações'}</span>
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Informativo Premium */}
+      <div className="bg-slate-900 p-12 rounded-[3.5rem] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700">
+          <Star size={80} className="text-white" />
+        </div>
+        <div className="relative z-10 max-w-2xl">
+          <h4 className="text-2xl font-black text-white tracking-tighter mb-4">Integridade de Dados</h4>
+          <p className="text-slate-400 font-medium leading-relaxed">
+            As informações deste perfil são utilizadas para a geração automática de contratos jurídicos e escalas de show. Mantenha seu WhatsApp e CPF sempre atualizados para evitar atrasos na logística e pagamentos.
+          </p>
+        </div>
       </div>
     </div>
   );

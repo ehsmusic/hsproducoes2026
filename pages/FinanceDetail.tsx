@@ -51,34 +51,26 @@ const FinanceDetail: React.FC = () => {
   useEffect(() => {
     if (!id) return;
 
-    // Listener do Evento
     const unsubEvent = onSnapshot(doc(db, 'events', id), (snapshot) => {
-      // Fix: Cast doc.data() as object to avoid spread type error
       if (snapshot.exists()) setEvent({ id: snapshot.id, ...snapshot.data() as object } as HSEvent);
     });
 
-    // Listener do Resumo Financeiro
     const unsubFinance = onSnapshot(doc(db, 'financeiro', id), (snapshot) => {
       if (snapshot.exists()) setFinance(snapshot.data() as HSEventFinance);
       setLoading(false);
     });
 
-    // Listener da Subcoleção de Movimentações
     const qMov = query(collection(db, 'financeiro', id, 'movimentacoes'), orderBy('dataMovimentacao', 'desc'));
-    // Fix: Cast snapshot to any to ensure docs access if typing is loose
     const unsubMov = onSnapshot(qMov, (snap: any) => {
-      // Fix: Cast doc.data() as object to avoid spread type error
       setMovimentacoes(snap.docs.map((d: any) => ({ id: d.id, ...d.data() as object } as Movimentacao)));
     });
 
     return () => { unsubEvent(); unsubFinance(); unsubMov(); };
   }, [id]);
 
-  // Função para recalcular os totais no documento pai baseado na subcoleção
   const recalculateFinance = async () => {
     if (!id || !finance) return;
     const snap = await getDocs(collection(db, 'financeiro', id, 'movimentacoes'));
-    // Fix: Cast current data to any to access valorMovimentacao property
     const totalPago = snap.docs.reduce((acc, curr) => acc + (Number((curr.data() as any).valorMovimentacao) || 0), 0);
     const valorContrato = finance.valorEvento || 0;
     const novoSaldo = Math.max(0, valorContrato - totalPago);
@@ -106,7 +98,6 @@ const FinanceDetail: React.FC = () => {
           createdAt: serverTimestamp()
         });
       }
-      // Força o recálculo após a alteração
       await recalculateFinance();
       
       setIsModalOpen(false);
@@ -133,105 +124,98 @@ const FinanceDetail: React.FC = () => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-40">
       <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
-      <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Sincronizando Extrato...</p>
+      <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Carregando Extrato...</p>
     </div>
   );
 
-  if (!event || !finance) return (
-    <div className="text-center py-40 space-y-6">
-      <AlertCircle className="mx-auto text-slate-800" size={64} />
-      <p className="text-slate-500 font-bold">Dados financeiros não encontrados.</p>
-      <button onClick={() => navigate(-1)} className="text-blue-500 font-black uppercase text-xs tracking-widest">Voltar</button>
-    </div>
-  );
+  if (!event || !finance) return null;
 
   const progress = Math.min(Math.round((finance.valorPago / (finance.valorEvento || 1)) * 100), 100);
 
   return (
     <div className="space-y-10 animate-fade-in pb-24 px-1 md:px-0">
-      {/* Header com Botão Voltar */}
       <div className="flex flex-col md:flex-row md:items-center gap-6">
-        <button onClick={() => navigate(-1)} className="w-12 h-12 flex items-center justify-center bg-slate-900 border border-slate-800 rounded-2xl text-slate-400 hover:text-white transition-all shadow-xl active:scale-95">
+        <button onClick={() => navigate(-1)} className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm active:scale-95">
           <ChevronLeft size={24} />
         </button>
         <div className="flex-1">
           <div className="flex items-center space-x-3 mb-1">
-            <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[9px] font-black uppercase tracking-widest">Relatório Financeiro</span>
-            <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">ID: {id?.slice(-6)}</span>
+            <span className="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-widest">Extrato de Show</span>
+            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">UID: {id?.slice(-6)}</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter truncate">{event.titulo}</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter truncate uppercase italic">{event.titulo}</h1>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div className="lg:col-span-2 space-y-10">
           
-          {/* Card Resumo Principal */}
-          <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group">
-            <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-600/5 blur-[100px] rounded-full group-hover:bg-blue-600/10 transition-all duration-1000"></div>
+          {/* Card Resumo Financeiro (White Theme) */}
+          <div className="bg-white border border-slate-100 rounded-[3rem] p-8 md:p-12 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-50 rounded-full blur-[100px] opacity-50"></div>
             
-            <div className="relative z-10 flex flex-row justify-between items-center gap-4 mb-12">
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
               <div className="min-w-0">
-                <p className="text-[9px] md:text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 truncate">Valor Total do Show</p>
-                <p className="text-4xl md:text-6xl font-black text-white tracking-tighter truncate">
-                  <span className="text-lg md:text-2xl text-blue-500/50 align-top mr-1">R$</span>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Valor Total Contratado</p>
+                <p className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter">
+                  <span className="text-lg md:text-2xl text-slate-300 align-top mr-1">R$</span>
                   {finance.valorEvento.toLocaleString('pt-BR')}
                 </p>
               </div>
-              <div className="flex-shrink-0">
-                <span className={`inline-flex whitespace-nowrap px-3 py-1.5 md:px-5 md:py-2 rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest border transition-all ${
+              <div>
+                <span className={`inline-flex px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                   finance.statusPagamento === 'Quitado' 
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                  : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                  : 'bg-amber-50 text-amber-600 border-amber-100'
                 }`}>
                   {finance.statusPagamento}
                 </span>
               </div>
             </div>
 
-            <div className="relative z-10 space-y-5">
-              <div className="flex items-center justify-between text-[9px] md:text-[10px] font-black uppercase tracking-widest">
-                <span className="text-slate-500">Progressão de Liquidação</span>
-                <span className="text-blue-500">{progress}%</span>
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                <span className="text-slate-400">Progresso da Liquidação</span>
+                <span className="text-blue-600">{progress}%</span>
               </div>
-              <div className="w-full h-4 md:h-5 bg-slate-950 rounded-full border border-slate-800 p-1 shadow-inner overflow-hidden">
+              <div className="w-full h-4 bg-slate-50 rounded-full border border-slate-100 p-1 shadow-inner">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-1000 ease-out"
+                  className="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-1000"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center space-x-2 text-slate-500 overflow-hidden">
-                  <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
-                  <span className="text-[8px] md:text-[9px] font-black uppercase truncate">R$ {finance.valorPago.toLocaleString('pt-BR')} Realizado</span>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Realizado</p>
+                  <p className="text-sm font-black text-emerald-600">R$ {finance.valorPago.toLocaleString('pt-BR')}</p>
                 </div>
-                <div className="flex items-center justify-end space-x-2 text-slate-500 overflow-hidden">
-                  <Clock size={14} className="text-amber-500 flex-shrink-0" />
-                  <span className="text-[8px] md:text-[9px] font-black uppercase truncate">R$ {finance.saldoPendente.toLocaleString('pt-BR')} Pendente</span>
+                <div className="text-right">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo em Aberto</p>
+                  <p className="text-sm font-black text-amber-600">R$ {finance.saldoPendente.toLocaleString('pt-BR')}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* TABELA DE MOVIMENTAÇÕES (Histórico de Entradas) */}
-          <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden">
-            <div className="p-8 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-slate-950/20">
+          {/* Lista de Movimentações (White Table) */}
+          <div className="bg-white border border-slate-100 rounded-[3rem] shadow-sm overflow-hidden">
+            <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-slate-50/50">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100">
                   <Receipt size={24} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-white uppercase tracking-tighter">Movimentações</h3>
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Entradas financeiras do contratante</p>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter italic">Lançamentos</h3>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Histórico de entradas recebidas</p>
                 </div>
               </div>
-              {(isAdmin || isContratante) && finance.statusPagamento !== 'Quitado' && (
+              {isAdmin && (
                 <button 
                   onClick={() => { setEditingMov(null); setIsModalOpen(true); }}
-                  className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-500 transition-all shadow-xl active:scale-95"
+                  className="flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/10 active:scale-95"
                 >
                   <Plus size={16} />
-                  <span>Adicionar Lançamento</span>
+                  <span>Novo Recebimento</span>
                 </button>
               )}
             </div>
@@ -239,66 +223,59 @@ const FinanceDetail: React.FC = () => {
             <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950/50 text-slate-500 text-[9px] font-black uppercase tracking-widest border-b border-slate-800/50">
-                    <th className="px-8 py-5">Data</th>
-                    <th className="px-8 py-5 text-right">Valor</th>
-                    <th className="px-8 py-5">Tipo de Pagamento</th>
+                  <tr className="bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-8 py-5">Data do Lançamento</th>
+                    <th className="px-8 py-5 text-right">Valor Recebido</th>
+                    <th className="px-8 py-5">Método</th>
                     <th className="px-8 py-5 text-center">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/50">
+                <tbody className="divide-y divide-slate-50">
                   {movimentacoes.length > 0 ? movimentacoes.map((mov) => (
-                    <tr key={mov.id} className="hover:bg-slate-800/30 transition-colors group">
-                      <td className="px-8 py-5">
-                        <span className="text-xs font-bold text-slate-300">{new Date(mov.dataMovimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
+                    <tr key={mov.id} className="hover:bg-slate-50 transition-colors group">
+                      <td className="px-8 py-5 text-xs font-bold text-slate-600">
+                        {new Date(mov.dataMovimentacao + 'T00:00:00').toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-8 py-5 text-right">
-                        <span className="text-sm font-black text-emerald-400">+ R$ {mov.valorMovimentacao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-sm font-black text-emerald-600">+ R$ {mov.valorMovimentacao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                       </td>
                       <td className="px-8 py-5">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                            <CreditCard size={14} className="text-blue-500/50" />
-                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{mov.formaPgmt}</span>
+                           <span>{mov.formaPgmt}</span>
                         </div>
                       </td>
                       <td className="px-8 py-5">
                         <div className="flex items-center justify-center space-x-3">
-                          {(isAdmin || isContratante) && (
+                          {isAdmin && (
                             <>
                               <button 
                                 onClick={() => { 
                                   setEditingMov(mov); 
-                                  setFormData({ 
-                                    dataMovimentacao: mov.dataMovimentacao, 
-                                    valorMovimentacao: mov.valorMovimentacao, 
-                                    formaPgmt: mov.formaPgmt 
-                                  }); 
+                                  setFormData({ dataMovimentacao: mov.dataMovimentacao, valorMovimentacao: mov.valorMovimentacao, formaPgmt: mov.formaPgmt }); 
                                   setIsModalOpen(true); 
                                 }}
-                                className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-400/10 rounded-lg transition-all"
-                                title="Editar"
+                                className="p-2 text-slate-300 hover:text-blue-600 hover:bg-white border border-transparent hover:border-blue-100 rounded-lg transition-all"
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button 
                                 onClick={() => handleDeleteMov(mov.id)}
-                                className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                                title="Excluir"
+                                className="p-2 text-slate-300 hover:text-red-500 hover:bg-white border border-transparent hover:border-red-100 rounded-lg transition-all"
                               >
                                 <Trash2 size={16} />
                               </button>
                             </>
                           )}
-                          {!isAdmin && !isContratante && <CheckCircle2 size={16} className="text-emerald-500/50" />}
                         </div>
                       </td>
                     </tr>
                   )) : (
                     <tr>
-                      <td colSpan={4} className="px-8 py-20 text-center">
-                         <div className="flex flex-col items-center space-y-3 opacity-30">
-                            <Receipt size={48} />
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nenhuma movimentação registrada.</p>
+                      <td colSpan={4} className="px-8 py-24 text-center">
+                         <div className="flex flex-col items-center space-y-3 opacity-20">
+                            <Receipt size={48} className="text-slate-400" />
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nenhum lançamento registrado para este show.</p>
                          </div>
                       </td>
                     </tr>
@@ -307,103 +284,70 @@ const FinanceDetail: React.FC = () => {
               </table>
             </div>
           </div>
-
-          {/* Custos Internos (Admin Only) */}
-          {isAdmin && (
-            <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 md:p-10 space-y-10 shadow-2xl">
-              <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center">
-                <TrendingUp size={18} className="mr-3 text-blue-500" /> Detalhamento de Saídas (Custos)
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[
-                  { label: 'Cachês de Equipe', value: finance.valorEquipe, icon: Users, color: 'text-blue-500' },
-                  { label: 'Alocação de Equipamento', value: finance.valorEquipamento, icon: Wallet, color: 'text-indigo-500' },
-                  { label: 'Logística & Transporte', value: finance.valorTransporte, icon: Truck, color: 'text-purple-500' },
-                  { label: 'Custos Adicionais', value: finance.valorOutros, icon: ArrowUpRight, color: 'text-slate-400' },
-                ].map((item, idx) => (
-                  <div key={idx} className="bg-slate-950/40 border border-slate-800 p-6 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center ${item.color}`}>
-                        <item.icon size={18} />
-                      </div>
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{item.label}</span>
-                    </div>
-                    <span className="text-xs md:text-sm font-black text-white">R$ {item.value.toLocaleString('pt-BR')}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Sidebar Info */}
+        {/* Sidebar (White Theme) */}
         <div className="space-y-8">
-          <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] p-8 space-y-8 shadow-2xl">
-            <h3 className="text-sm font-black text-white uppercase tracking-widest border-b border-slate-800 pb-4">Info do Contrato</h3>
+          <div className="bg-white border border-slate-100 rounded-[3rem] p-10 space-y-8 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest border-b border-slate-50 pb-4 italic">Dados do Evento</h3>
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
-                <Calendar size={18} className="text-blue-500 mt-0.5" />
+                <Calendar size={18} className="text-blue-500 mt-1" />
                 <div>
-                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Data do Show</p>
-                  <p className="text-sm font-bold text-white">{event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR') : '--'}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Agenda</p>
+                  <p className="text-sm font-bold text-slate-900">{event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR') : '--'}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
-                <MapPin size={18} className="text-blue-500 mt-0.5" />
+                <MapPin size={18} className="text-blue-500 mt-1" />
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Localização</p>
-                  <p className="text-sm font-bold text-white truncate">{event.local}</p>
-                </div>
-              </div>
-              <div className="pt-6 border-t border-slate-800">
-                <div className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-center">
-                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{event.status}</span>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Localização</p>
+                  <p className="text-sm font-bold text-slate-900 truncate">{event.local}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-[2.5rem] p-8 space-y-4 shadow-2xl">
-             <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500 mb-2">
-                <ShieldCheck size={24} />
+          <div className="bg-slate-900 p-10 rounded-[3rem] space-y-6 shadow-xl relative overflow-hidden group">
+             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000">
+                <ShieldCheck size={80} className="text-white" />
              </div>
-             <h4 className="text-sm font-black text-white uppercase tracking-tighter">Auditoria Backstage</h4>
-             <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-               Cada pagamento gera um registro inalterável para conferência da HS Produções. Para suporte financeiro, use o canal oficial.
+             <h4 className="text-xl font-black text-white uppercase italic tracking-tight relative z-10">Auditoria Financeira</h4>
+             <p className="text-[11px] text-slate-400 font-medium leading-relaxed relative z-10">
+               Os lançamentos registrados aqui refletem diretamente nos balanços de ganhos da equipe e custos de infraestrutura da HS Produções.
              </p>
           </div>
         </div>
       </div>
 
-      {/* MODAL PARA LANÇAMENTO (Adicionar / Editar) */}
+      {/* MODAL PARA LANÇAMENTO (Premium White) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          <div className="fixed inset-0 bg-black/95 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative bg-slate-900 border border-slate-800 rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden animate-fade-in my-auto">
-            <div className="p-8 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-              <h3 className="text-xl font-black text-white uppercase tracking-tighter">
-                {editingMov ? 'Editar Lançamento' : 'Novo Lançamento'}
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl" onClick={() => setIsModalOpen(false)}></div>
+          <div className="relative bg-white border border-slate-100 rounded-[3rem] w-full max-w-xl shadow-2xl overflow-hidden animate-scale-in my-auto">
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white">
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter italic">
+                {editingMov ? 'Editar Lançamento' : 'Efetivar Recebimento'}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-all"><X size={24} /></button>
+              <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-slate-900 rounded-xl transition-all"><X size={24} /></button>
             </div>
             
-            <form onSubmit={handleSaveMovimentacao} className="p-8 space-y-6">
+            <form onSubmit={handleSaveMovimentacao} className="p-10 space-y-8">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Data da Transação</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Data da Transação</label>
                 <input 
                   type="date" 
                   required
                   value={formData.dataMovimentacao}
                   onChange={e => setFormData({...formData, dataMovimentacao: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white font-bold outline-none" 
+                  className="w-full px-8 py-5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all" 
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Valor Recebido (R$)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Valor Realizado (R$)</label>
                 <div className="relative group">
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-600 font-black text-xl">R$</span>
+                  <span className="absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 font-black text-2xl group-focus-within:text-blue-600 transition-colors">R$</span>
                   <input 
                     type="number" 
                     required
@@ -411,35 +355,34 @@ const FinanceDetail: React.FC = () => {
                     value={formData.valorMovimentacao || ''}
                     onChange={e => setFormData({...formData, valorMovimentacao: Number(e.target.value)})}
                     placeholder="0,00"
-                    className="w-full pl-16 pr-6 py-5 bg-slate-950 border border-slate-800 rounded-2xl text-white font-black text-2xl focus:border-blue-500 transition-all outline-none" 
+                    className="w-full pl-20 pr-8 py-6 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-black text-3xl focus:border-blue-500 transition-all outline-none" 
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Forma de Pagamento</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Método de Pagamento</label>
                 <select 
                   value={formData.formaPgmt}
                   onChange={e => setFormData({...formData, formaPgmt: e.target.value})}
-                  className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-2xl text-white font-black uppercase text-xs tracking-widest outline-none appearance-none"
+                  className="w-full px-8 py-5 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 font-black uppercase text-xs tracking-widest outline-none appearance-none focus:border-blue-500"
                 >
                   <option value="Pix">Pix</option>
-                  <option value="Transferência">Transferência</option>
-                  <option value="Boleto">Boleto</option>
-                  <option value="Dinheiro">Dinheiro</option>
-                  <option value="Outros">Outros</option>
+                  <option value="Transferência">Transferência Bancária</option>
+                  <option value="Dinheiro">Dinheiro (Espécie)</option>
+                  <option value="Cartão">Cartão (Débito/Crédito)</option>
                 </select>
               </div>
 
-              <div className="pt-6 flex gap-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 bg-slate-800 text-slate-400 rounded-2xl font-black text-xs uppercase tracking-widest">Cancelar</button>
+              <div className="pt-6 flex flex-col md:flex-row gap-4">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-6 bg-white text-slate-400 border border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest hover:text-slate-900 transition-all">Cancelar</button>
                 <button 
                   type="submit" 
                   disabled={isSubmitting || formData.valorMovimentacao <= 0}
-                  className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl flex items-center justify-center space-x-3 disabled:opacity-50"
+                  className="flex-[2] py-6 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 flex items-center justify-center space-x-3 disabled:opacity-50 active:scale-95"
                 >
-                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                  <span>{editingMov ? 'Confirmar Edição' : 'Efetivar Lançamento'}</span>
+                  {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                  <span>{editingMov ? 'Confirmar Edição' : 'Registrar Lançamento'}</span>
                 </button>
               </div>
             </form>

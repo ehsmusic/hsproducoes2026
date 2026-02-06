@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../App';
+import { useAuth, LOGO_URL } from '../App';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { UserRole, HSEvent, EventStatus, HSEventFinance, HSEventContratacao } from '../types';
@@ -75,9 +75,9 @@ const Dashboard: React.FC = () => {
           }
 
           setStats({
-            label1: 'Volume em negócios', value1: volumeNegocios, isCurrency1: true,
-            label2: 'Eventos confirmados', value2: confirmedIds.length,
-            label3: 'Solicitações pendentes', value3: solicitudesPendentes
+            label1: 'Volume Negociado', value1: volumeNegocios, isCurrency1: true,
+            label2: 'Shows Confirmados', value2: confirmedIds.length,
+            label3: 'Solicitações', value3: solicitudesPendentes
           });
 
         } else if (isRole(UserRole.CONTRATANTE)) {
@@ -94,9 +94,9 @@ const Dashboard: React.FC = () => {
           }
 
           setStats({
-            label1: 'Investimento total', value1: investimentoTotal, isCurrency1: true,
-            label2: 'Eventos confirmados', value2: confirmedIds.length,
-            label3: 'Solicitações pendentes', value3: solicitudesPendentes
+            label1: 'Investimento Total', value1: investimentoTotal, isCurrency1: true,
+            label2: 'Meus Shows', value2: confirmedIds.length,
+            label3: 'Em Análise', value3: solicitudesPendentes
           });
 
         } else if (isRole(UserRole.INTEGRANTE)) {
@@ -118,9 +118,9 @@ const Dashboard: React.FC = () => {
           }
 
           setStats({
-            label1: 'Cachê acumulado', value1: cacheAcumulado, isCurrency1: true,
-            label2: 'Shows escalados', value2: confirmedConts.length,
-            label3: 'Confirmações pendentes', value3: pendentesFuturos
+            label1: 'Ganhos Acumulados', value1: cacheAcumulado, isCurrency1: true,
+            label2: 'Shows Confirmados', value2: confirmedConts.length,
+            label3: 'Escalas Pendentes', value3: pendentesFuturos
           });
         }
       } catch (error) { console.error(error); } finally { setLoading(false); }
@@ -130,8 +130,8 @@ const Dashboard: React.FC = () => {
 
   if (loading) return (
     <div className="flex flex-col h-96 items-center justify-center space-y-4">
-      <div className="w-12 h-12 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin"></div>
-      <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Sincronizando Backstage...</p>
+      <div className="w-12 h-12 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin"></div>
+      <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Backstage HS Sincronizando...</p>
     </div>
   );
 
@@ -146,37 +146,37 @@ const Dashboard: React.FC = () => {
     <div className="space-y-10 animate-fade-in pb-20">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2 text-blue-500 mb-2">
+        <div className="space-y-1.5">
+          <div className="flex items-center space-x-2 text-blue-600 mb-2">
             <Activity size={16} />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Painel de Controle HS</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em]">Painel Operacional HS</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
-            {getGreeting()}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">{userProfile?.displayName.split(' ')[0]}</span>.
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+            {getGreeting()}, <span className="text-blue-600">{userProfile?.displayName.split(' ')[0]}</span>.
           </h1>
           <div className="flex items-center space-x-3 text-slate-500 font-bold">
-            <Calendar size={14} className="text-slate-700" />
+            <Calendar size={14} className="text-slate-300" />
             <span className="text-sm">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-4">
            {isRole(UserRole.ADMIN) && (
-             <Link to="/events?new=true" className="group bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center space-x-2">
-               <Plus size={18} className="group-hover:rotate-90 transition-transform" />
-               <span>Novo Show</span>
+             <Link to="/events?new=true" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
+               <Plus size={18} className="transition-transform group-hover:rotate-90" />
+               <span>Agendar Show</span>
              </Link>
            )}
            {isRole(UserRole.CONTRATANTE) && (
-             <Link to="/events?new=true" className="group bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(16,185,129,0.5)] transition-all active:scale-95 flex items-center space-x-2">
+             <Link to="/events?new=true" className="group bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center space-x-2">
                <DollarSign size={18} />
-               <span>Pedir Orçamento</span>
+               <span>Novo Orçamento</span>
              </Link>
            )}
            {isRole(UserRole.INTEGRANTE) && (
-             <Link to="/confirmacoes" className="group bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_10px_30px_-10px_rgba(37,99,235,0.5)] transition-all active:scale-95 flex items-center space-x-2">
+             <Link to="/confirmacoes" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
                <CheckCircle2 size={18} />
-               <span>Ver Escala</span>
+               <span>Verificar Escala</span>
              </Link>
            )}
         </div>

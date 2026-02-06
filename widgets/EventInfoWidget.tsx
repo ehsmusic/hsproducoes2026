@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HSEvent } from '../types';
-import { Calendar, Clock, Users, MapPin, Utensils, Sparkles, AlignLeft, Briefcase, FileText, Download } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, Utensils, Sparkles, AlignLeft, Briefcase, FileText, Download, ShieldCheck } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -33,109 +33,133 @@ const EventInfoWidget: React.FC<Props> = ({ event }) => {
   }, [event.contratanteId]);
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Bloco de Ação de Contrato - Aparece se tiver a URL */}
+    <div className="space-y-10 animate-fade-in">
+      {/* Bloco de Ação de Contrato - Premium Clean Style */}
       {event.contractUrl && (
-        <div className="bg-gradient-to-r from-emerald-600/20 to-blue-600/10 border border-emerald-500/20 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl animate-fade-in">
-          <div className="flex items-center space-x-6 text-center md:text-left">
-            <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500 shadow-xl border border-emerald-500/20">
+        <div className="bg-white border border-emerald-100 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_20px_50px_-15px_rgba(16,185,129,0.1)] animate-fade-in relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-3xl opacity-50 group-hover:scale-150 transition-transform duration-1000"></div>
+          
+          <div className="flex items-center space-x-6 text-center md:text-left relative z-10">
+            <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
               <FileText size={32} />
             </div>
             <div>
-              <h4 className="text-xl font-black text-white uppercase tracking-tighter italic">Contrato Disponível</h4>
-              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">O documento jurídico oficial foi gerado e assinado.</p>
+              <div className="flex items-center justify-center md:justify-start space-x-2 text-emerald-600 mb-1">
+                <ShieldCheck size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Documento Formalizado</span>
+              </div>
+              <h4 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic">Contrato Disponível</h4>
             </div>
           </div>
+          
           <a 
             href={event.contractUrl} 
             target="_blank" 
             rel="noreferrer"
-            className="w-full md:w-auto flex items-center justify-center space-x-3 px-10 py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl active:scale-95"
+            className="w-full md:w-auto flex items-center justify-center space-x-4 px-12 py-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/20 active:scale-95"
           >
-            <Download size={18} />
-            <span>Baixar Contrato PDF</span>
+            <Download size={20} />
+            <span>Baixar PDF Oficial</span>
           </a>
         </div>
       )}
 
-      {/* Grid de Informações Básicas */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10 shadow-2xl">
-         <div className="space-y-8">
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><Calendar size={24} /></div>
+      {/* Grid de Informações Básicas - Premium White Card */}
+      <div className="bg-white border border-slate-100 rounded-[3rem] p-8 md:p-16 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.03)]">
+         <div className="space-y-10">
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><Calendar size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Data e Hora</p>
-                <p className="text-xl font-black text-white">{event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR') : '--'} às {event.horaEvento || '--:--'}h</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Data e Horário</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">
+                  {event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR') : '--'}
+                  <span className="text-slate-300 mx-2">/</span>
+                  <span className="text-blue-600">{event.horaEvento || '--:--'}h</span>
+                </p>
               </div>
             </div>
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><Clock size={24} /></div>
+            
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><Clock size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Duração do Show</p>
-                <p className="text-xl font-black text-white">{event.duracao} Horas</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Duração do Espetáculo</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">{event.duracao} <span className="text-slate-400 text-lg uppercase ml-1">Horas</span></p>
               </div>
             </div>
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><Users size={24} /></div>
+
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><Users size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Público Estimado</p>
-                <p className="text-xl font-black text-white">{event.publicoEstimado || 0} Pessoas</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Público Estimado</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">{event.publicoEstimado || 0} <span className="text-slate-400 text-lg uppercase ml-1">Convidados</span></p>
               </div>
             </div>
          </div>
 
-         <div className="space-y-8">
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><Briefcase size={24} /></div>
+         <div className="space-y-10">
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><Briefcase size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Contratante</p>
-                <p className="text-xl font-black text-white">{contratanteNome}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Contratante / Responsável</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">{contratanteNome}</p>
               </div>
             </div>
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><MapPin size={24} /></div>
+
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><MapPin size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Local do Evento</p>
-                <p className="text-xl font-black text-white">{event.local}</p>
-                <p className="text-xs text-slate-500 font-bold mt-1">{event.enderecoEvento}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Localização do Evento</p>
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">{event.local}</p>
+                <p className="text-xs text-slate-500 font-bold mt-2 leading-relaxed">{event.enderecoEvento}</p>
               </div>
             </div>
-            <div className="flex items-start space-x-5">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500"><Utensils size={24} /></div>
+
+            <div className="flex items-start space-x-6">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 border border-blue-100 flex-shrink-0 shadow-sm"><Utensils size={26} /></div>
               <div>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Logística Inclusa</p>
-                <div className="flex gap-2 mt-2">
-                   <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${event.somContratado ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-slate-800 text-slate-600 border-slate-700'}`}>Som: {event.somContratado ? 'Sim' : 'Não'}</span>
-                   <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${event.alimentacaoInclusa ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-slate-800 text-slate-600 border-slate-700'}`}>Refeição: {event.alimentacaoInclusa ? 'Sim' : 'Não'}</span>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Logística & Serviços</p>
+                <div className="flex flex-wrap gap-3">
+                   <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${event.somContratado ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-slate-50 text-slate-300 border-slate-100'}`}>
+                     Som: {event.somContratado ? 'Incluso' : 'N/A'}
+                   </span>
+                   <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all ${event.alimentacaoInclusa ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-slate-50 text-slate-300 border-slate-100'}`}>
+                     Refeição: {event.alimentacaoInclusa ? 'Incluso' : 'N/A'}
+                   </span>
                 </div>
               </div>
             </div>
          </div>
       </div>
 
-      {/* Cerimonial se for Casamento */}
+      {/* Cerimonial - Destaque em tom azul suave */}
       {event.tipo === 'Casamento' && (event.cerimonialista || event.localCerimonia) && (
-        <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 space-y-8 shadow-2xl">
-           <h3 className="text-sm font-black text-blue-500 uppercase tracking-widest flex items-center"><Sparkles size={18} className="mr-3" /> Detalhes da Cerimônia</h3>
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cerimonialista / Equipe</p>
-                <p className="text-lg font-black text-white">{event.cerimonialista || 'Não informado'}</p>
+        <div className="bg-blue-50/50 border border-blue-100 rounded-[3rem] p-8 md:p-12 space-y-8 animate-fade-in">
+           <div className="flex items-center space-x-3 text-blue-600 border-b border-blue-100 pb-6">
+              <Sparkles size={20} />
+              <h3 className="text-xs font-black uppercase tracking-[0.3em]">Protocolos de Cerimônia</h3>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Equipe de Assessoria</p>
+                <p className="text-xl font-black text-slate-900 tracking-tight">{event.cerimonialista || 'Não informado'}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Local da Cerimônia</p>
-                <p className="text-lg font-black text-white">{event.localCerimonia || 'Mesmo local do show'}</p>
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Endereço da Cerimônia</p>
+                <p className="text-xl font-black text-slate-900 tracking-tight">{event.localCerimonia || 'Mesmo local da recepção'}</p>
               </div>
            </div>
         </div>
       )}
 
-      {/* Observações */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 space-y-6 shadow-2xl">
-         <h3 className="text-sm font-black text-slate-500 uppercase tracking-widest flex items-center"><AlignLeft size={18} className="mr-3" /> Observações e Briefing</h3>
-         <div className="bg-slate-950/40 p-8 rounded-3xl border border-slate-800 shadow-inner">
-            <p className="text-slate-300 font-medium leading-relaxed whitespace-pre-wrap">
-              {event.observacoes || 'Nenhuma observação adicional registrada para este evento.'}
+      {/* Observações e Briefing - Estilo Clean Text Area */}
+      <div className="bg-white border border-slate-100 rounded-[3rem] p-8 md:p-12 space-y-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.03)]">
+         <div className="flex items-center space-x-3 text-slate-900 border-b border-slate-50 pb-6">
+            <AlignLeft size={20} className="text-blue-600" />
+            <h3 className="text-xs font-black uppercase tracking-[0.3em]">Briefing & Notas Técnicas</h3>
+         </div>
+         <div className="bg-slate-50/50 p-10 rounded-[2.5rem] border border-slate-100">
+            <p className="text-slate-600 font-medium leading-relaxed text-lg whitespace-pre-wrap">
+              {event.observacoes || 'Nenhuma instrução adicional foi registrada para esta apresentação artística.'}
             </p>
          </div>
       </div>

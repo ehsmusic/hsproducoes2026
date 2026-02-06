@@ -42,7 +42,7 @@ import FinanceDetail from './pages/FinanceDetail';
 import Profile from './pages/Profile';
 import Confirmacoes from './pages/Confirmacoes';
 
-export const LOGO_URL = "https://res.cloudinary.com/dvq0tmbil/image/upload/v1768574843/Logo_HS_Metal_3D_cor_fundo_transparente_fnahvs.png";
+export const LOGO_URL = "https://res.cloudinary.com/dvq0tmbil/image/upload/v1770346599/logoHSBlack_affzmc.png";
 export const DEFAULT_AVATAR = "https://i.ibb.co/pjTnM2NQ/avatar-Sucesso.png";
 
 interface AuthContextType {
@@ -112,9 +112,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: UserR
   const location = useLocation();
 
   if (loading) return (
-    <div className="flex flex-col h-screen items-center justify-center bg-slate-950">
+    <div className="flex flex-col h-screen items-center justify-center bg-slate-50">
       <img src={LOGO_URL} alt="Loading" className="w-32 animate-pulse mb-4" />
-      <div className="w-48 h-1 bg-slate-900 rounded-full overflow-hidden">
+      <div className="w-48 h-1 bg-slate-200 rounded-full overflow-hidden">
         <div className="w-1/2 h-full bg-blue-600 animate-slide-loading"></div>
       </div>
     </div>
@@ -143,20 +143,20 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
   ];
 
   return (
-    <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 border-r border-slate-900 text-white transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-100 text-slate-900 transform transition-transform duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="flex flex-col h-full">
         <div className="p-10 flex flex-col items-center">
           <img 
             src={LOGO_URL} 
             alt="HS Logo" 
-            className="w-40 drop-shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:scale-105 transition-transform duration-300" 
+            className="w-40 drop-shadow-sm hover:scale-105 transition-transform duration-300" 
           />
-          <div className="mt-4 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
-            <p className="text-[10px] text-blue-400 uppercase tracking-[0.3em] font-black">Backstage HS</p>
+          <div className="mt-4 px-3 py-1 rounded-full bg-blue-50 border border-blue-100">
+            <p className="text-[10px] text-blue-600 uppercase tracking-[0.3em] font-black">Backstage HS</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-6 py-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 px-6 py-4 space-y-1 overflow-y-auto">
           {links.filter(link => !link.roles || (userProfile && link.roles.includes(userProfile.role))).map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -164,32 +164,32 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
                 key={link.path}
                 to={link.path}
                 onClick={() => onClose()}
-                className={`flex items-center space-x-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive ? 'bg-blue-600 shadow-xl shadow-blue-900/40 text-white' : 'text-slate-500 hover:bg-slate-900 hover:text-white'}`}
+                className={`flex items-center space-x-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'}`}
               >
-                <link.icon size={20} className={`${isActive ? 'text-white' : 'text-slate-600 group-hover:text-blue-400'}`} />
-                <span className={`text-sm font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-80'}`}>{link.name}</span>
-                {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>}
+                <link.icon size={19} className={`${isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
+                <span className={`text-sm font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-90'}`}>{link.name}</span>
+                {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-8 border-t border-slate-900 bg-slate-950/80 backdrop-blur-md">
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 overflow-hidden">
+        <div className="p-6 border-t border-slate-100 bg-slate-50/50">
+          <div className="flex items-center space-x-3 mb-6 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden">
               <img src={userProfile?.photoURL || DEFAULT_AVATAR} alt="Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-black truncate text-white uppercase tracking-tight">{userProfile?.displayName}</p>
-              <p className="text-[9px] text-blue-500 font-black uppercase tracking-widest">{userProfile?.role}</p>
+              <p className="text-xs font-black truncate text-slate-900 uppercase tracking-tight">{userProfile?.displayName}</p>
+              <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest">{userProfile?.role}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 hover:bg-red-950/30 hover:border-red-900/50 text-slate-500 hover:text-red-400 transition-all duration-300 group"
+            className="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 transition-all duration-300 group shadow-sm"
           >
             <LogOut size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Sair</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Encerrar Sessão</span>
           </button>
         </div>
       </div>
@@ -201,17 +201,17 @@ const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex selection:bg-blue-500/30">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex selection:bg-blue-100 selection:text-blue-600">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="flex-1 lg:ml-72 flex flex-col">
-        <header className="lg:hidden bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 px-6 py-5 flex items-center justify-between sticky top-0 z-40">
-          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-400 hover:text-white transition-colors">
+        <header className="lg:hidden bg-white/80 backdrop-blur-xl border-b border-slate-100 px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+          <button onClick={() => setIsSidebarOpen(true)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
             <Menu size={28} />
           </button>
           <img src={LOGO_URL} alt="HS Logo" className="h-10" />
           <div className="w-10"></div>
         </header>
-        <main className="flex-1 p-6 md:p-12 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
           <Routes>
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
@@ -230,7 +230,7 @@ const MainLayout: React.FC = () => {
       </div>
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-md z-40 lg:hidden transition-opacity duration-500" 
+          className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-500" 
           onClick={() => setIsSidebarOpen(false)}
         />
       )}

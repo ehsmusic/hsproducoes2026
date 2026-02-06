@@ -23,173 +23,140 @@ const EventFormWidget: React.FC<Props> = ({
   title, data, setData, onSubmit, onCancel, isSubmitting, isAdmin, clients = [], submitLabel 
 }) => {
   
-  // Bloquear scroll do body para focar apenas no formulário
+  // Rolar para o topo ao abrir para garantir que o usuário veja o início do form
   useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex justify-center animate-fade-in overflow-hidden">
+    <div className="w-full min-h-[80vh] flex flex-col animate-fade-in">
       
-      {/* Painel Centralizado - Forçado a ocupar 100% da altura da tela (h-full / 100dvh) */}
-      <div className="w-full md:w-[90vw] lg:w-[80vw] h-[100dvh] flex flex-col bg-slate-950 border-x border-slate-800 shadow-[0_0_100px_rgba(0,0,0,1)] relative overflow-hidden">
+      {/* Container Principal - Agora integrado ao layout sem ser fixo na tela toda */}
+      <div className="w-full flex flex-col bg-white border border-slate-100 rounded-[3rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.05)] overflow-hidden">
         
-        {/* Header Fixo */}
-        <header className="flex-shrink-0 bg-slate-900 border-b border-slate-800 px-6 md:px-12 py-6 flex items-center justify-between shadow-2xl z-20">
-          <div className="flex items-center space-x-5">
+        {/* Header Superior - Light & Elegant */}
+        <header className="flex-shrink-0 bg-white border-b border-slate-50 px-8 md:px-12 py-8 flex items-center justify-between">
+          <div className="flex items-center space-x-6">
             <button 
               type="button"
               onClick={onCancel}
-              className="w-10 h-10 flex items-center justify-center bg-slate-800 border border-slate-700 rounded-xl text-slate-400 hover:text-white transition-all active:scale-95"
+              className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 hover:bg-white hover:border-blue-100 transition-all active:scale-95 shadow-sm"
+              title="Voltar"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={24} />
             </button>
             <div>
-              <h1 className="text-xl md:text-2xl font-black text-white tracking-tighter uppercase leading-none">{title}</h1>
-              <p className="text-[9px] text-blue-500 font-black uppercase tracking-[0.2em] mt-1.5 flex items-center">
-                <ShieldCheck size={10} className="mr-1.5" />
-                HS Produções • Sistema Backstage
-              </p>
+              <div className="flex items-center space-x-2 text-blue-600 mb-1">
+                <ShieldCheck size={14} />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">Ambiente de Registro HS</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">{title}</h1>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             <button 
               type="submit"
               form="main-event-form"
               disabled={isSubmitting}
-              className="flex items-center space-x-2 px-8 py-4 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-500 transition-all active:scale-95 disabled:opacity-50"
+              className="flex items-center space-x-3 px-10 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
             >
-              {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+              {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
               <span>{isSubmitting ? 'Salvando...' : submitLabel}</span>
             </button>
           </div>
         </header>
 
-        {/* Conteúdo com Scroll - Área Principal com flex-1 para preencher o espaço */}
-        <main className="flex-1 overflow-y-auto bg-slate-950 custom-scrollbar relative z-10">
-          <div className="max-w-4xl mx-auto px-6 py-12 md:py-16">
+        {/* Corpo do Formulário */}
+        <main className="flex-1 bg-slate-50/30">
+          <div className="max-w-4xl mx-auto px-8 py-12 md:py-16">
             
-            <form id="main-event-form" onSubmit={onSubmit} className="space-y-16">
+            <form id="main-event-form" onSubmit={onSubmit} className="space-y-12">
               
-              {/* SEÇÃO 1: ESSENCIAIS */}
-              <section className="space-y-10">
-                <div className="flex items-center space-x-3 text-blue-500 border-b border-slate-900 pb-4">
-                  <Music size={18} />
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Definições do Evento</h3>
+              {/* SEÇÃO 1: CONCEITO */}
+              <section className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-10">
+                <div className="flex items-center space-x-3 text-slate-900 pb-6 border-b border-slate-50">
+                  <Music size={20} className="text-blue-600" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Dados do Espetáculo</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="md:col-span-2 space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Nome do Show / Evento *</label>
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Título do Show / Nome do Evento *</label>
                     <input 
                       required 
                       value={data.titulo} 
                       onChange={e => setData({...data, titulo: e.target.value})} 
-                      className="w-full px-6 py-5 bg-slate-900 border border-slate-800 rounded-2xl text-white font-black text-xl md:text-2xl outline-none focus:border-blue-500 transition-all placeholder:text-slate-800" 
-                      placeholder="Ex: Casamento Marina e Rodrigo"
+                      className="w-full px-8 py-7 bg-slate-50/50 border border-slate-200 rounded-[2.2rem] text-slate-900 font-black text-xl md:text-3xl outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white transition-all placeholder:text-slate-300" 
+                      placeholder="Ex: Formatura Direito Unesp 2024"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-blue-500 uppercase ml-2 tracking-widest flex items-center">
-                      <Flag size={12} className="mr-1.5" /> Tipo do Show *
-                    </label>
-                    <div className="relative">
-                      <select 
-                        required 
-                        value={data.tipo} 
-                        onChange={e => setData({...data, tipo: e.target.value as ShowType})} 
-                        className="w-full px-6 py-5 bg-slate-900 border border-blue-600/30 rounded-2xl text-white font-black text-lg outline-none focus:border-blue-500 transition-all cursor-pointer appearance-none"
-                      >
-                        <option value="Casamento">Casamento</option>
-                        <option value="Aniversário">Aniversário</option>
-                        <option value="Formatura">Formatura</option>
-                        <option value="Confraternização">Confraternização</option>
-                        <option value="Outros">Outros</option>
-                      </select>
-                    </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Tipo de Apresentação *</label>
+                    <select 
+                      required 
+                      value={data.tipo} 
+                      onChange={e => setData({...data, tipo: e.target.value as ShowType})} 
+                      className="w-full px-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="Casamento">Casamento</option>
+                      <option value="Aniversário">Aniversário</option>
+                      <option value="Formatura">Formatura</option>
+                      <option value="Confraternização">Confraternização</option>
+                      <option value="Outros">Outros</option>
+                    </select>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Público Estimado</label>
-                    <div className="relative">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Público Estimado</label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300 group-focus-within:text-blue-600 transition-colors">
+                        <Users size={20} />
+                      </div>
                       <input 
                         type="number" 
                         value={data.publicoEstimado} 
                         onChange={e => setData({...data, publicoEstimado: Number(e.target.value)})} 
-                        className="w-full px-6 py-5 bg-slate-900 border border-slate-800 rounded-2xl text-white font-black text-lg outline-none focus:border-blue-500 transition-all" 
+                        className="w-full pl-16 pr-8 py-6 bg-slate-50/50 border border-slate-200 rounded-[1.8rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all" 
                         placeholder="0"
                       />
-                      <Users size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-700" />
                     </div>
                   </div>
                 </div>
               </section>
 
-              {/* SEÇÃO CONDICIONAL: CERIMONIAL (Apenas Casamento) */}
-              {data.tipo === 'Casamento' && (
-                <section className="p-8 md:p-10 bg-blue-600/5 border border-blue-600/10 rounded-[2.5rem] space-y-10 animate-fade-in">
-                  <div className="flex items-center space-x-3 text-blue-400 border-b border-blue-500/10 pb-4">
-                    <Sparkles size={18} />
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Detalhes da Cerimônia</h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-blue-500 uppercase ml-2 tracking-widest">Cerimonialista / Assessoria</label>
-                      <input 
-                        value={data.cerimonialista || ''} 
-                        onChange={e => setData({...data, cerimonialista: e.target.value})} 
-                        className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-blue-500 transition-all" 
-                        placeholder="Nome da empresa ou contato"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-blue-500 uppercase ml-2 tracking-widest">Local da Cerimônia</label>
-                      <input 
-                        value={data.localCerimonia || ''} 
-                        onChange={e => setData({...data, localCerimonia: e.target.value})} 
-                        className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-blue-500 transition-all" 
-                        placeholder="Mesmo local ou outro endereço"
-                      />
-                    </div>
-                  </div>
-                </section>
-              )}
-
-              {/* SEÇÃO 2: ADMIN */}
+              {/* CONTRATANTE (Admin Only) */}
               {isAdmin && (
-                <section className="p-8 bg-amber-500/5 border border-amber-500/10 rounded-[2rem] space-y-8 animate-fade-in">
-                  <div className="flex items-center space-x-3 text-amber-500 border-b border-amber-500/10 pb-4">
-                    <ShieldCheck size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Controle de Produção</span>
+                <section className="p-8 md:p-12 bg-slate-900 rounded-[3rem] space-y-10 animate-fade-in text-white shadow-xl">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-6">
+                    <div className="flex items-center space-x-3">
+                      <ShieldCheck size={20} className="text-blue-400" />
+                      <span className="text-xs font-black uppercase tracking-[0.3em]">Gestão Administrativa</span>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-amber-500 uppercase ml-2 tracking-widest">Contratante / Cliente</label>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Vincular a um Contratante</label>
                       <select 
                         required 
                         value={data.contratanteId} 
                         onChange={e => setData({...data, contratanteId: e.target.value})} 
-                        className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-amber-500 appearance-none"
+                        className="w-full px-8 py-6 bg-slate-950 border border-slate-800 rounded-[1.5rem] text-white font-bold outline-none focus:border-blue-500 appearance-none transition-all"
                       >
                         <option value="">Selecione o Cliente...</option>
                         {clients?.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
                       </select>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-amber-500 uppercase ml-2 tracking-widest">Status Backstage</label>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Status do Workflow</label>
                       <select 
                         required 
                         value={data.status} 
                         onChange={e => setData({...data, status: e.target.value as EventStatus})} 
-                        className="w-full px-6 py-4 bg-slate-950 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-amber-500 appearance-none"
+                        className="w-full px-8 py-6 bg-slate-950 border border-slate-800 rounded-[1.5rem] text-white font-bold outline-none focus:border-blue-500 appearance-none transition-all"
                       >
                         {Object.values(EventStatus).map(status => (
                           <option key={status} value={status}>{status}</option>
@@ -200,118 +167,117 @@ const EventFormWidget: React.FC<Props> = ({
                 </section>
               )}
 
-              {/* SEÇÃO 3: CRONOGRAMA */}
-              <section className="space-y-8">
-                <div className="flex items-center space-x-3 text-blue-500 border-b border-slate-900 pb-4">
-                  <Calendar size={18} />
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Data e Horário</h3>
+              {/* LOGÍSTICA */}
+              <section className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-10">
+                <div className="flex items-center space-x-3 text-slate-900 pb-6 border-b border-slate-50">
+                  <Calendar size={20} className="text-blue-600" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Agenda & Local</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Data do Show *</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Data do Show *</label>
                     <input 
                       type="date" 
                       required 
                       value={data.dataEvento} 
                       onChange={e => setData({...data, dataEvento: e.target.value})} 
-                      className="w-full px-5 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-black outline-none focus:border-blue-500 transition-all" 
+                      className="w-full px-6 py-6 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Início Previsto *</label>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Início Previsto *</label>
                     <input 
                       type="time" 
                       required 
                       value={data.horaEvento} 
                       onChange={e => setData({...data, horaEvento: e.target.value})} 
-                      className="w-full px-5 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-black outline-none focus:border-blue-500 transition-all" 
+                      className="w-full px-6 py-6 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Duração (Horas)</label>
-                    <input 
-                      type="number" 
-                      step="0.5" 
-                      value={data.duracao} 
-                      onChange={e => setData({...data, duracao: Number(e.target.value)})} 
-                      className="w-full px-5 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-black outline-none focus:border-blue-500 transition-all" 
-                    />
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Duração Estimada</label>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        step="0.5" 
+                        value={data.duracao} 
+                        onChange={e => setData({...data, duracao: Number(e.target.value)})} 
+                        className="w-full px-8 py-6 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
+                      />
+                      <Clock size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300" />
+                    </div>
                   </div>
-                </div>
-              </section>
 
-              {/* SEÇÃO 4: LOGÍSTICA */}
-              <section className="space-y-8">
-                <div className="flex items-center space-x-3 text-blue-500 border-b border-slate-900 pb-4">
-                  <MapPin size={18} />
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Localização</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Nome do Buffet / Local *</label>
+                  <div className="md:col-span-1 space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Buffet / Local *</label>
                     <input 
                       required 
                       value={data.local} 
                       onChange={e => setData({...data, local: e.target.value})} 
-                      className="w-full px-6 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-blue-500" 
-                      placeholder="Ex: Villa Régia"
+                      className="w-full px-8 py-6 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
+                      placeholder="Nome do Espaço"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Endereço Completo</label>
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest">Endereço Completo</label>
                     <input 
                       value={data.enderecoEvento} 
                       onChange={e => setData({...data, enderecoEvento: e.target.value})} 
-                      className="w-full px-6 py-4 bg-slate-900 border border-slate-800 rounded-xl text-white font-bold outline-none focus:border-blue-500" 
-                      placeholder="Rua, Número, Bairro, Cidade - UF"
+                      className="w-full px-8 py-6 bg-slate-50 border border-slate-200 rounded-[1.5rem] text-slate-900 font-bold outline-none focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
+                      placeholder="Rua, Número, Bairro, Cidade"
                     />
                   </div>
                 </div>
               </section>
 
-              {/* SEÇÃO 5: PRODUÇÃO */}
-              <section className="space-y-10">
-                <div className="flex items-center space-x-3 text-blue-500 border-b border-slate-900 pb-4">
-                  <Info size={18} />
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Produção e Briefing</h3>
+              {/* BRIEFING */}
+              <section className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-10">
+                <div className="flex items-center space-x-3 text-slate-900 pb-6 border-b border-slate-50">
+                  <Info size={20} className="text-blue-600" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em]">Checklist de Produção</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <label className="flex items-center p-6 bg-slate-900 border border-slate-800 rounded-2xl cursor-pointer hover:border-blue-500 transition-all shadow-lg">
-                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all ${data.somContratado ? 'bg-blue-600 border-blue-500' : 'bg-slate-950 border-slate-800'}`}>
-                      {data.somContratado && <Plus size={18} className="text-white rotate-45" />}
-                      <input type="checkbox" className="hidden" checked={data.somContratado} onChange={e => setData({...data, somContratado: e.target.checked})} />
+                  <button 
+                    type="button"
+                    onClick={() => setData({...data, somContratado: !data.somContratado})}
+                    className={`flex items-center p-8 rounded-[2rem] border transition-all text-left ${data.somContratado ? 'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-blue-200'}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${data.somContratado ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                      {data.somContratado ? <Plus className="rotate-45" size={20} /> : <div className="w-3 h-3 rounded-full bg-slate-100" />}
                     </div>
                     <div className="ml-5">
-                      <p className="text-[10px] font-black text-white uppercase tracking-widest">Som HS Incluso</p>
-                      <p className="text-[8px] font-bold text-slate-600 uppercase mt-0.5">Equipamento próprio</p>
+                      <p className="text-xs font-black uppercase tracking-widest">Sonorização HS</p>
+                      <p className={`text-[9px] font-bold uppercase mt-1 tracking-widest ${data.somContratado ? 'text-blue-100' : 'text-slate-400'}`}>Equipamento Próprio</p>
                     </div>
-                  </label>
+                  </button>
 
-                  <label className="flex items-center p-6 bg-slate-900 border border-slate-800 rounded-2xl cursor-pointer hover:border-emerald-500 transition-all shadow-lg">
-                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center transition-all ${data.alimentacaoInclusa ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-950 border-slate-800'}`}>
-                      {data.alimentacaoInclusa && <Plus size={18} className="text-white rotate-45" />}
-                      <input type="checkbox" className="hidden" checked={data.alimentacaoInclusa} onChange={e => setData({...data, alimentacaoInclusa: e.target.checked})} />
+                  <button 
+                    type="button"
+                    onClick={() => setData({...data, alimentacaoInclusa: !data.alimentacaoInclusa})}
+                    className={`flex items-center p-8 rounded-[2rem] border transition-all text-left ${data.alimentacaoInclusa ? 'bg-emerald-600 border-emerald-600 text-white shadow-xl shadow-emerald-500/20' : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-emerald-200'}`}
+                  >
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${data.alimentacaoInclusa ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                      {data.alimentacaoInclusa ? <Plus className="rotate-45" size={20} /> : <div className="w-3 h-3 rounded-full bg-slate-100" />}
                     </div>
                     <div className="ml-5">
-                      <p className="text-[10px] font-black text-white uppercase tracking-widest">Refeição Banda</p>
-                      <p className="text-[8px] font-bold text-slate-600 uppercase mt-0.5">Confirmado com Local</p>
+                      <p className="text-xs font-black uppercase tracking-widest">Refeição Equipe</p>
+                      <p className={`text-[9px] font-bold uppercase mt-1 tracking-widest ${data.alimentacaoInclusa ? 'text-emerald-100' : 'text-slate-400'}`}>Incluso no Evento</p>
                     </div>
-                  </label>
+                  </button>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest flex items-center">
-                    <AlignLeft size={12} className="mr-1.5" /> Notas do Show
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-slate-400 uppercase ml-2 tracking-widest flex items-center">
+                    <AlignLeft size={14} className="mr-1.5" /> Notas e Pedidos Especiais
                   </label>
                   <textarea 
                     rows={5} 
                     value={data.observacoes} 
                     onChange={e => setData({...data, observacoes: e.target.value})} 
-                    className="w-full px-6 py-5 bg-slate-900 border border-slate-800 rounded-2xl text-white font-medium outline-none focus:border-blue-500 transition-all resize-none leading-relaxed" 
-                    placeholder="Detalhes sobre repertório, horários e logística..."
+                    className="w-full px-8 py-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] text-slate-900 font-medium outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white transition-all resize-none leading-relaxed placeholder:text-slate-300" 
+                    placeholder="Especifique restrições, preferências de repertório ou detalhes importantes..."
                   />
                 </div>
               </section>
@@ -320,16 +286,18 @@ const EventFormWidget: React.FC<Props> = ({
           </div>
         </main>
 
-        {/* Footer Fixo na Base */}
-        <footer className="flex-shrink-0 bg-slate-900 border-t border-slate-800 p-6 md:p-10 flex flex-col sm:flex-row gap-6 items-center z-20">
-          <div className="hidden sm:block flex-1">
-            <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.2em]">Os dados serão processados e sincronizados com a HS Produções.</p>
+        {/* Footer Inferior - Sticky no final do card */}
+        <footer className="bg-white border-t border-slate-50 p-8 md:p-12 flex flex-col sm:flex-row gap-6 items-center justify-between">
+          <div className="text-center sm:text-left">
+             <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] max-w-xs">
+               O envio dos dados constitui uma solicitação oficial sujeita à auditoria da HS Produções.
+             </p>
           </div>
           <div className="flex gap-4 w-full sm:w-auto">
             <button 
               type="button" 
               onClick={onCancel} 
-              className="flex-1 sm:px-12 py-5 bg-slate-800 text-slate-400 rounded-xl font-black uppercase text-[10px] tracking-widest hover:text-white transition-all active:scale-95"
+              className="flex-1 sm:px-12 py-5 bg-white text-slate-400 border border-slate-200 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all active:scale-95"
             >
               Cancelar
             </button>
@@ -337,37 +305,30 @@ const EventFormWidget: React.FC<Props> = ({
               type="submit"
               form="main-event-form"
               disabled={isSubmitting} 
-              className="flex-[2] sm:flex-none sm:px-20 py-5 bg-blue-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-blue-900/40 flex items-center justify-center space-x-3 hover:bg-blue-500 active:scale-95 disabled:opacity-50"
+              className="flex-[2] sm:flex-none sm:px-20 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-blue-500/30 flex items-center justify-center space-x-3 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
             >
-              {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+              {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
               <span>{isSubmitting ? 'Gravando...' : submitLabel}</span>
             </button>
           </div>
         </footer>
-
-        <style>{`
-          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-          .custom-scrollbar::-webkit-scrollbar-thumb { 
-            background: #1e293b; 
-            border-radius: 20px; 
-          }
-          
-          select { 
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); 
-            background-position: right 1.5rem center; 
-            background-repeat: no-repeat; 
-            background-size: 1.25rem; 
-            padding-right: 3.5rem; 
-          }
-
-          input[type="date"]::-webkit-calendar-picker-indicator,
-          input[type="time"]::-webkit-calendar-picker-indicator {
-            filter: invert(0.5) sepia(1) saturate(5) hue-rotate(190deg);
-            cursor: pointer;
-          }
-        `}</style>
       </div>
+
+      <style>{`
+        select { 
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%233b82f6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E"); 
+          background-position: right 1.8rem center; 
+          background-repeat: no-repeat; 
+          background-size: 1.2rem; 
+          padding-right: 4rem; 
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          filter: invert(0.4) sepia(1) saturate(5) hue-rotate(190deg);
+          cursor: pointer;
+          scale: 1.1;
+        }
+      `}</style>
     </div>
   );
 };
