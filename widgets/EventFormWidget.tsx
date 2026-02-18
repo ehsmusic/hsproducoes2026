@@ -1,10 +1,16 @@
 
-import React, { useEffect } from 'react';
-import { HSEvent, ShowType, UserProfile, EventStatus } from '../types';
+import React, { useEffect, useState } from 'react';
+import { HSEvent, ShowType, UserProfile, EventStatus, UserRole } from '../types';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db, firebaseConfig } from '../firebase';
+import { DEFAULT_AVATAR } from '../App';
 import { 
   X, Save, Plus, Loader2, Calendar, MapPin, 
   Users, Clock, Music, Info, ShieldCheck, 
-  ChevronLeft, Layout, Flag, AlignLeft, Sparkles
+  ChevronLeft, Layout, Flag, AlignLeft, Sparkles,
+  UserPlus, Mail, Phone, User
 } from 'lucide-react';
 
 interface Props {
@@ -22,11 +28,71 @@ interface Props {
 const EventFormWidget: React.FC<Props> = ({ 
   title, data, setData, onSubmit, onCancel, isSubmitting, isAdmin, clients = [], submitLabel 
 }) => {
+  const [showNewClientPanel, setShowNewClientPanel] = useState(false);
+  const [isSavingNewClient, setIsSavingNewClient] = useState(false);
+  const [newClientData, setNewClientData] = useState<Partial<UserProfile>>({
+    displayName: '',
+    email: '',
+    phoneNumber: ''
+  });
   
   // Rolar para o topo ao abrir para garantir que o usuário veja o início do form
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  const handleCreateNewClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClientData.displayName || !newClientData.email) {
+      alert("Nome e E-mail são obrigatórios.");
+      return;
+    }
+
+    setIsSavingNewClient(true);
+    let secondaryApp;
+    try {
+      secondaryApp = initializeApp(firebaseConfig, `Client-${Date.now()}`);
+      const secondaryAuth = getAuth(secondaryApp);
+      
+      const defaultPassword = "HS" + Math.random().toString(36).slice(-6);
+      
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth, 
+        newClientData.email, 
+        defaultPassword
+      );
+      
+      const uid = userCredential.user.uid;
+
+      const profile: UserProfile = {
+        uid,
+        email: newClientData.email,
+        displayName: newClientData.displayName,
+        role: UserRole.CONTRATANTE,
+        photoURL: DEFAULT_AVATAR,
+        phoneNumber: newClientData.phoneNumber || '',
+        pixKey: '',
+        endereco: ''
+      };
+
+      await setDoc(doc(db, 'users', uid), profile);
+
+      // Selecionar automaticamente o novo cliente no formulário
+      setData({ ...data, contratanteId: uid });
+
+      alert(`Contratante criado com sucesso!\nE-mail: ${newClientData.email}\nSenha Provisória: ${defaultPassword}`);
+      
+      setShowNewClientPanel(false);
+      setNewClientData({ displayName: '', email: '', phoneNumber: '' });
+
+    } catch (err: any) {
+      console.error("Erro ao criar contratante:", err);
+      alert("Erro ao criar contratante: " + (err.message || "Erro desconhecido"));
+    } finally {
+      setIsSavingNewClient(false);
+      if (secondaryApp) await deleteApp(secondaryApp);
+    }
+  };
 
   return (
     <div className="w-full min-h-[80vh] flex flex-col animate-fade-in">
@@ -139,15 +205,27 @@ const EventFormWidget: React.FC<Props> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-3">
                       <label className="text-[10px] font-black text-slate-500 uppercase ml-2 tracking-widest">Vincular a um Contratante</label>
-                      <select 
-                        required 
-                        value={data.contratanteId} 
-                        onChange={e => setData({...data, contratanteId: e.target.value})} 
-                        className="w-full px-8 py-6 bg-slate-950 border border-slate-800 rounded-[1.5rem] text-white font-bold outline-none focus:border-blue-500 appearance-none transition-all"
-                      >
-                        <option value="">Selecione o Cliente...</option>
-                        {clients?.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
-                      </select>
+                      <div className="flex gap-3">
+                        <div className="flex-1 relative">
+                          <select 
+                            required 
+                            value={data.contratanteId} 
+                            onChange={e => setData({...data, contratanteId: e.target.value})} 
+                            className="w-full px-8 py-6 bg-slate-950 border border-slate-800 rounded-[1.5rem] text-white font-bold outline-none focus:border-blue-500 appearance-none transition-all"
+                          >
+                            <option value="">Selecione o Cliente...</option>
+                            {clients?.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
+                          </select>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => setShowNewClientPanel(true)}
+                          className="w-16 h-16 flex items-center justify-center bg-blue-600 text-white rounded-[1.5rem] hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-500/20"
+                          title="Novo Contratante"
+                        >
+                          <UserPlus size={20} />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -313,6 +391,95 @@ const EventFormWidget: React.FC<Props> = ({
           </div>
         </footer>
       </div>
+
+      {/* SIDE PANEL: NOVO CONTRATANTE */}
+      {showNewClientPanel && (
+        <div className="fixed inset-0 z-[120] overflow-hidden">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setShowNewClientPanel(false)}></div>
+          
+          <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col animate-slide-in-right border-l border-slate-100">
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
+              <div>
+                <div className="flex items-center space-x-2 text-blue-600 mb-1">
+                  <UserPlus size={14} />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Cadastro Rápido</span>
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">Novo Contratante</h3>
+              </div>
+              <button 
+                onClick={() => setShowNewClientPanel(false)} 
+                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95 shadow-sm"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-8 overflow-y-auto space-y-4 scrollbar-hide flex-1 bg-slate-50/30">
+              <form onSubmit={handleCreateNewClient} className="space-y-6 animate-fade-in">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome do Cliente</label>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                      <input 
+                        required
+                        value={newClientData.displayName}
+                        onChange={e => setNewClientData({...newClientData, displayName: e.target.value})}
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                        placeholder="Nome completo ou Razão Social"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                      <input 
+                        required
+                        type="email"
+                        value={newClientData.email}
+                        onChange={e => setNewClientData({...newClientData, email: e.target.value})}
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                        placeholder="email@cliente.com"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp de Contato</label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                      <input 
+                        value={newClientData.phoneNumber}
+                        onChange={e => setNewClientData({...newClientData, phoneNumber: e.target.value})}
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                        placeholder="(00) 00000-0000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 pt-6">
+                  <button 
+                    type="submit"
+                    disabled={isSavingNewClient}
+                    className="w-full py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 active:scale-95"
+                  >
+                    {isSavingNewClient ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                    <span>{isSavingNewClient ? 'Criando...' : 'Salvar Contratante'}</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setShowNewClientPanel(false)}
+                    className="w-full py-5 bg-white border border-slate-200 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-all active:scale-95"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         select { 

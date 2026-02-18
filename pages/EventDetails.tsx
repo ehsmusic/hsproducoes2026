@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router';
-import { doc, updateDoc, onSnapshot, collection, query, where, getDocs, writeBatch, setDoc, QuerySnapshot, DocumentData } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useAuth } from '../App';
-import { HSEvent, EventStatus, UserRole, UserProfile, HSEventContratacao, HSEquipment, HSEquipmentAllocation, HSEventFinance } from '../types';
+import { doc, updateDoc, onSnapshot, collection, query, where, getDocs, writeBatch, setDoc, QuerySnapshot, DocumentData, addDoc } from 'firebase/firestore';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { db, firebaseConfig } from '../firebase';
+import { useAuth, DEFAULT_AVATAR } from '../App';
+import { HSEvent, EventStatus, UserRole, UserProfile, HSEventContratacao, HSEquipment, HSEquipmentAllocation, HSEventFinance, TipoIntegrante } from '../types';
 import { 
   ChevronLeft, Loader2, Sparkles, Edit2, X, Plus, Save, Speaker, CheckCircle2, 
-  Layout, ShieldCheck, Clock, MapPin, Activity
+  Layout, ShieldCheck, Clock, MapPin, Activity, UserPlus, Mail, Phone, Briefcase, User
 } from 'lucide-react';
 
 // Widgets
@@ -48,6 +50,17 @@ const EventDetails: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editFormData, setEditFormData] = useState<Partial<HSEvent>>({});
+
+  const [isCreatingNewMember, setIsCreatingNewMember] = useState(false);
+  const [isSavingNewMember, setIsSavingNewMember] = useState(false);
+  const [newMemberData, setNewMemberData] = useState<Partial<UserProfile>>({
+    role: UserRole.INTEGRANTE,
+    tipoIntegrante: 'Músico',
+    displayName: '',
+    email: '',
+    phoneNumber: '',
+    funcao: ''
+  });
 
   const isAdmin = userProfile?.role === UserRole.ADMIN;
   const isContratante = userProfile?.role === UserRole.CONTRATANTE;
@@ -199,6 +212,84 @@ const EventDetails: React.FC = () => {
       await setDoc(doc(db, 'financeiro', id), newFinData);
       alert("Financeiro atualizado!");
     } catch (err) { console.error("Erro financeiro:", err); alert("Erro ao atualizar dados financeiros."); } finally { setIsSavingFinance(false); }
+  };
+
+  const handleCreateNewMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberData.displayName || !newMemberData.email) {
+      alert("Nome e E-mail são obrigatórios.");
+      return;
+    }
+
+    setIsSavingNewMember(true);
+    let secondaryApp;
+    try {
+      // 1. Criar no Firebase Auth usando App Secundário para não deslogar o admin
+      secondaryApp = initializeApp(firebaseConfig, `Secondary-${Date.now()}`);
+      const secondaryAuth = getAuth(secondaryApp);
+      
+      // Senha padrão para novos integrantes (eles podem resetar depois)
+      const defaultPassword = "HS" + Math.random().toString(36).slice(-6);
+      
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth, 
+        newMemberData.email, 
+        defaultPassword
+      );
+      
+      const uid = userCredential.user.uid;
+
+      // 2. Criar no Firestore
+      const profile: UserProfile = {
+        uid,
+        email: newMemberData.email,
+        displayName: newMemberData.displayName,
+        role: UserRole.INTEGRANTE,
+        photoURL: DEFAULT_AVATAR,
+        phoneNumber: newMemberData.phoneNumber || '',
+        tipoIntegrante: newMemberData.tipoIntegrante || 'Músico',
+        funcao: newMemberData.funcao || '',
+        pixKey: '',
+        endereco: ''
+      };
+
+      await setDoc(doc(db, 'users', uid), profile);
+
+      // 3. Adicionar localmente para seleção imediata
+      setIntegrantes(prev => [...prev, profile]);
+      
+      // 4. Selecionar automaticamente para o show
+      const newCont: HSEventContratacao = { 
+        showId: id!, 
+        integranteId: uid, 
+        cache: 0, 
+        confirmacao: false, 
+        note: '', 
+        createdAt: new Date().toISOString() 
+      }; 
+      setLocalContratacoes(prev => [...prev, newCont]);
+
+      alert(`Integrante criado com sucesso!\nE-mail: ${newMemberData.email}\nSenha Provisória: ${defaultPassword}`);
+      
+      // Resetar e fechar
+      setIsCreatingNewMember(false);
+      setShowMemberSelector(false);
+      setNewMemberData({
+        role: UserRole.INTEGRANTE,
+        tipoIntegrante: 'Músico',
+        displayName: '',
+        email: '',
+        phoneNumber: '',
+        funcao: ''
+      });
+
+    } catch (err: any) {
+      console.error("Erro ao criar integrante:", err);
+      alert("Erro ao criar integrante: " + (err.message || "Erro desconhecido"));
+    } finally {
+      setIsSavingNewMember(false);
+      if (secondaryApp) await deleteApp(secondaryApp);
+    }
   };
 
   const orcMusicos = useMemo(() => {
@@ -435,97 +526,204 @@ const EventDetails: React.FC = () => {
         </div>
       )}
       
-      {/* MODAL: SELECIONAR INTEGRANTE - PREMIUM WHITE THEME */}
+      {/* SIDE PANEL: SELECIONAR INTEGRANTE - FIXED RIGHT PANEL */}
       {showMemberSelector && isAdmin && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl" onClick={() => setShowMemberSelector(false)}></div>
-          <div className="relative bg-white border border-slate-100 rounded-[3rem] w-full max-w-2xl shadow-[0_30px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
-            <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
+        <div className="fixed inset-0 z-[110] overflow-hidden">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => { setShowMemberSelector(false); setIsCreatingNewMember(false); }}></div>
+          
+          <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col animate-slide-in-right border-l border-slate-100">
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
               <div>
                 <div className="flex items-center space-x-2 text-blue-600 mb-1">
-                  <Plus size={14} />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">Escala Técnica</span>
+                  {isCreatingNewMember ? <UserPlus size={14} /> : <Plus size={14} />}
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    {isCreatingNewMember ? 'Cadastro Rápido' : 'Escala Técnica'}
+                  </span>
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">Vincular Integrante</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">
+                  {isCreatingNewMember ? 'Novo Integrante' : 'Vincular Integrante'}
+                </h3>
               </div>
-              <button 
-                onClick={() => setShowMemberSelector(false)} 
-                className="w-14 h-14 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-2xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95 shadow-sm"
-              >
-                <X size={28} />
-              </button>
+              <div className="flex items-center gap-3">
+                {!isCreatingNewMember && (
+                  <button 
+                    onClick={() => setIsCreatingNewMember(true)}
+                    className="flex items-center space-x-2 px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                  >
+                    <UserPlus size={14} />
+                    <span>Novo</span>
+                  </button>
+                )}
+                <button 
+                  onClick={() => { setShowMemberSelector(false); setIsCreatingNewMember(false); }} 
+                  className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95 shadow-sm"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
             
-            <div className="p-10 overflow-y-auto space-y-4 scrollbar-hide flex-1 bg-slate-50/30">
-              {integrantes
-                .filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid))
-                .map(member => (
-                  <button 
-                    key={member.uid} 
-                    onClick={() => { 
-                      const newCont: HSEventContratacao = { 
-                        showId: id!, 
-                        integranteId: member.uid, 
-                        cache: 0, 
-                        confirmacao: false, 
-                        note: '', 
-                        createdAt: new Date().toISOString() 
-                      }; 
-                      setLocalContratacoes([...localContratacoes, newCont]); 
-                      setShowMemberSelector(false); 
-                    }} 
-                    className="w-full flex items-center space-x-6 p-6 bg-white border border-slate-100 rounded-[2rem] hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left group active:scale-[0.98]"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-slate-50 p-1 border border-slate-100 overflow-hidden flex-shrink-0 shadow-sm">
-                      <img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover rounded-xl" />
+            <div className="p-8 overflow-y-auto space-y-4 scrollbar-hide flex-1 bg-slate-50/30">
+              {isCreatingNewMember ? (
+                <form onSubmit={handleCreateNewMember} className="space-y-6 animate-fade-in">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                        <input 
+                          required
+                          value={newMemberData.displayName}
+                          onChange={e => setNewMemberData({...newMemberData, displayName: e.target.value})}
+                          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                          placeholder="Nome do integrante"
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-black text-slate-900 text-xl tracking-tight leading-tight">{member.displayName}</h4>
-                      <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mt-1">
-                        {member.funcao || member.tipoIntegrante || 'Equipe HS'}
-                      </p>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                        <input 
+                          required
+                          type="email"
+                          value={newMemberData.email}
+                          onChange={e => setNewMemberData({...newMemberData, email: e.target.value})}
+                          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                          placeholder="email@exemplo.com"
+                        />
+                      </div>
                     </div>
-                    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-90 transition-all">
-                      <Plus size={20} />
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                        <input 
+                          value={newMemberData.phoneNumber}
+                          onChange={e => setNewMemberData({...newMemberData, phoneNumber: e.target.value})}
+                          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                          placeholder="(00) 00000-0000"
+                        />
+                      </div>
                     </div>
-                  </button>
-              ))}
-              
-              {integrantes.filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid)).length === 0 && (
-                <div className="py-20 text-center space-y-4">
-                   <div className="w-16 h-16 bg-white border border-slate-100 rounded-3xl flex items-center justify-center mx-auto text-slate-200">
-                      <ShieldCheck size={32} />
-                   </div>
-                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Todo o elenco já foi escalado.</p>
-                </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo</label>
+                      <div className="relative">
+                        <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                        <select 
+                          value={newMemberData.tipoIntegrante}
+                          onChange={e => setNewMemberData({...newMemberData, tipoIntegrante: e.target.value as TipoIntegrante})}
+                          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold appearance-none shadow-sm"
+                        >
+                          <option value="Músico">Músico</option>
+                          <option value="Dançarina">Dançarina</option>
+                          <option value="Produção">Produção</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Função / Instrumento</label>
+                      <input 
+                        value={newMemberData.funcao}
+                        onChange={e => setNewMemberData({...newMemberData, funcao: e.target.value})}
+                        className="w-full px-6 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold shadow-sm"
+                        placeholder="Ex: Tecladista, Guitarrista..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-3 pt-6">
+                    <button 
+                      type="submit"
+                      disabled={isSavingNewMember}
+                      className="w-full py-5 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 active:scale-95"
+                    >
+                      {isSavingNewMember ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                      <span>{isSavingNewMember ? 'Criando...' : 'Salvar e Vincular'}</span>
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setIsCreatingNewMember(false)}
+                      className="w-full py-5 bg-white border border-slate-200 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-slate-900 transition-all active:scale-95"
+                    >
+                      Voltar para Lista
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  {integrantes
+                    .filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid))
+                    .map(member => (
+                      <button 
+                        key={member.uid} 
+                        onClick={() => { 
+                          const newCont: HSEventContratacao = { 
+                            showId: id!, 
+                            integranteId: member.uid, 
+                            cache: 0, 
+                            confirmacao: false, 
+                            note: '', 
+                            createdAt: new Date().toISOString() 
+                          }; 
+                          setLocalContratacoes([...localContratacoes, newCont]); 
+                          setShowMemberSelector(false); 
+                        }} 
+                        className="w-full flex items-center space-x-5 p-5 bg-white border border-slate-100 rounded-[2rem] hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left group active:scale-[0.98] shadow-sm"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-50 p-1 border border-slate-100 overflow-hidden flex-shrink-0 shadow-sm">
+                          <img src={member.photoURL || "/avatar.png"} className="w-full h-full object-cover rounded-xl" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-black text-slate-900 text-lg tracking-tight leading-tight">{member.displayName}</h4>
+                          <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest mt-0.5">
+                            {member.funcao || member.tipoIntegrante || 'Equipe HS'}
+                          </p>
+                        </div>
+                        <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-90 transition-all">
+                          <Plus size={18} />
+                        </div>
+                      </button>
+                  ))}
+                  
+                  {integrantes.filter(m => (m.role === UserRole.INTEGRANTE || m.role === UserRole.ADMIN) && !localContratacoes.some(lc => lc.integranteId === m.uid)).length === 0 && (
+                    <div className="py-20 text-center space-y-4">
+                       <div className="w-16 h-16 bg-white border border-slate-100 rounded-3xl flex items-center justify-center mx-auto text-slate-200">
+                          <ShieldCheck size={32} />
+                       </div>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Todo o elenco já foi escalado.</p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL: SELECIONAR EQUIPAMENTO - PREMIUM WHITE THEME */}
+      {/* SIDE PANEL: SELECIONAR EQUIPAMENTO - FIXED RIGHT PANEL */}
       {showEquipSelector && isAdmin && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl" onClick={() => setShowEquipSelector(false)}></div>
-          <div className="relative bg-white border border-slate-100 rounded-[3rem] w-full max-w-2xl shadow-[0_30px_100px_-20px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col max-h-[85vh] animate-fade-in">
-            <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
+        <div className="fixed inset-0 z-[110] overflow-hidden">
+          <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" onClick={() => setShowEquipSelector(false)}></div>
+          
+          <div className="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col animate-slide-in-right border-l border-slate-100">
+            <div className="p-8 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
                <div>
                 <div className="flex items-center space-x-2 text-blue-600 mb-1">
                   <Layout size={14} />
                   <span className="text-[10px] font-black uppercase tracking-[0.2em]">Recursos Técnicos</span>
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">Alocar Patrimônio</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic leading-none">Alocar Patrimônio</h3>
               </div>
               <button 
                 onClick={() => setShowEquipSelector(false)} 
-                className="w-14 h-14 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-2xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95 shadow-sm"
+                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95 shadow-sm"
               >
-                <X size={28} />
+                <X size={20} />
               </button>
             </div>
             
-            <div className="p-10 overflow-y-auto space-y-4 scrollbar-hide flex-1 bg-slate-50/30">
+            <div className="p-8 overflow-y-auto space-y-4 scrollbar-hide flex-1 bg-slate-50/30">
               {allEquipment.filter(e => !localAllocations.some(la => la.equipamentoId === e.id)).map(equip => (
                 <button 
                   key={equip.id} 
@@ -540,17 +738,17 @@ const EventDetails: React.FC = () => {
                     setLocalAllocations([...localAllocations, newAlloc]); 
                     setShowEquipSelector(false); 
                   }} 
-                  className="w-full flex items-center space-x-6 p-6 bg-white border border-slate-100 rounded-[2rem] hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left group active:scale-[0.98]"
+                  className="w-full flex items-center space-x-5 p-5 bg-white border border-slate-100 rounded-[2rem] hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/5 transition-all text-left group active:scale-[0.98] shadow-sm"
                 >
-                  <div className="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center text-slate-300 flex-shrink-0 shadow-sm p-1">
-                    {equip.photoUrlEquipamento ? <img src={equip.photoUrlEquipamento} className="w-full h-full object-cover rounded-xl" /> : <Speaker size={32} />}
+                  <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center text-slate-300 flex-shrink-0 shadow-sm p-1">
+                    {equip.photoUrlEquipamento ? <img src={equip.photoUrlEquipamento} className="w-full h-full object-cover rounded-xl" /> : <Speaker size={24} />}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-black text-slate-900 text-xl tracking-tight leading-tight">{equip.displayName}</h4>
-                    <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mt-1">Patrimônio HS • Operacional</p>
+                    <h4 className="font-black text-slate-900 text-lg tracking-tight leading-tight">{equip.displayName}</h4>
+                    <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest mt-0.5">Patrimônio HS • Operacional</p>
                   </div>
-                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-90 transition-all">
-                    <Plus size={20} />
+                  <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-200 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-90 transition-all">
+                    <Plus size={18} />
                   </div>
                 </button>
               ))}

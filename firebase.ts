@@ -4,7 +4,7 @@ import { getAuth, GoogleAuthProvider } from '@firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyBLvj8kP0LurmmVhfJmlJk4O68uX_kSqCU",
   authDomain: "apphs-ofc.firebaseapp.com",
   projectId: "apphs-ofc",
