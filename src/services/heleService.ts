@@ -1,13 +1,27 @@
 
+/// <reference types="vite/client" />
 import { GoogleGenAI } from "@google/genai";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
 import { HSEvent, HSEventFinance, HSEventContratacao, UserProfile } from "../../types";
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+let genAI: GoogleGenAI | null = null;
+
+function getGenAI() {
+  if (!genAI) {
+    // Try process.env (Node/Platform) or import.meta.env (Vite/Client)
+    const apiKey = (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '') || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not set. Please configure it in your environment variables.");
+    }
+    genAI = new GoogleGenAI({ apiKey });
+  }
+  return genAI;
+}
 
 export async function getHeleResponse(userMessage: string, history: { role: string, parts: { text: string }[] }[]) {
   try {
+    const ai = getGenAI();
     // Fetch context data
     const eventsSnap = await getDocs(collection(db, 'events'));
     const financeSnap = await getDocs(collection(db, 'financeiro'));
@@ -46,7 +60,7 @@ export async function getHeleResponse(userMessage: string, history: { role: stri
     `;
 
     const model = "gemini-3-flash-preview";
-    const response = await genAI.models.generateContent({
+    const response = await ai.models.generateContent({
       model,
       contents: [
         ...history,
@@ -58,8 +72,11 @@ export async function getHeleResponse(userMessage: string, history: { role: stri
     });
 
     return response.text || "Desculpe, tive um problema ao processar sua solicitação.";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Hele Error:", error);
+    if (error.message?.includes("API key")) {
+      return "A chave de API da Hele não foi configurada corretamente. Por favor, verifique as variáveis de ambiente.";
+    }
     return "Ops! Tive um erro técnico aqui. Pode tentar novamente em instantes?";
   }
 }
