@@ -51,98 +51,98 @@ const EventEquipeWidget: React.FC<Props> = ({
     </div>
 
     {/* Grid de Membros */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {localContratacoes.map(loc => {
         const m = integrantes.find(i => i.uid === loc.integranteId);
         if (!m) return null;
         return (
-          <div key={loc.integranteId} className="bg-white border border-slate-100 rounded-[3rem] p-8 space-y-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.03)] relative overflow-hidden group hover:border-blue-100 transition-all">
+          <div key={loc.integranteId} className="bg-white border border-slate-100 rounded-2xl p-6 space-y-6 shadow-sm relative overflow-hidden group hover:border-blue-100 transition-all">
             
             {/* Perfil e Remoção */}
-            <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-              <div className="flex items-center space-x-5">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+              <div className="flex items-center space-x-4">
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-[1.5rem] bg-slate-50 p-1 border border-slate-100 shadow-sm overflow-hidden">
-                    <img src={m.photoURL || DEFAULT_AVATAR} className="w-full h-full object-cover rounded-[1.2rem]" alt={m.displayName} />
+                  <div className="w-12 h-12 rounded-xl bg-slate-50 p-1 border border-slate-100 shadow-sm overflow-hidden">
+                    <img src={m.photoURL || DEFAULT_AVATAR} className="w-full h-full object-cover rounded-lg" alt={m.displayName} />
                   </div>
                   {loc.confirmacao && (
-                    <div className="absolute -top-2 -right-2 w-7 h-7 bg-emerald-500 rounded-full flex items-center justify-center border-4 border-white shadow-lg shadow-emerald-500/20">
-                      <UserCheck size={12} className="text-white" />
+                    <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                      <UserCheck size={10} className="text-white" />
                     </div>
                   )}
                 </div>
                 <div>
-                  <h4 className="font-black text-slate-900 text-xl tracking-tight">{m.displayName}</h4>
-                  <p className="text-[10px] text-blue-600 font-black uppercase tracking-[0.2em] mt-0.5">{m.funcao || m.tipoIntegrante}</p>
+                  <h4 className="font-black text-slate-900 text-lg tracking-tight">{m.displayName}</h4>
+                  <p className="text-[9px] text-blue-600 font-black uppercase tracking-[0.2em] mt-0.5">{m.funcao || m.tipoIntegrante}</p>
                 </div>
               </div>
               {isAdmin && (
                 <button 
                   onClick={() => onRemove(loc.integranteId)} 
-                  className="w-11 h-11 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-90"
+                  className="w-9 h-9 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-90"
                   title="Remover da Escala"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={16} />
                 </button>
               )}
             </div>
 
             {/* Inputs Financeiros e Status */}
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{isAdmin ? 'Cachê Profissional' : 'Sincronização'}</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">{isAdmin ? 'Cachê' : 'Sincronização'}</label>
                 {isAdmin ? (
                   <div className="relative group">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xs group-focus-within:text-blue-500">R$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px] group-focus-within:text-blue-500">R$</span>
                     <input 
                       type="number" 
                       value={loc.cache} 
                       onChange={e => onUpdate(loc.integranteId, { cache: Number(e.target.value) })} 
-                      className="w-full bg-slate-50/50 border border-slate-200 rounded-[1.5rem] py-5 pl-12 pr-6 text-slate-900 font-black text-sm outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white transition-all shadow-sm" 
+                      className="w-full bg-slate-50/50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-slate-900 font-black text-xs outline-none focus:border-blue-500 focus:bg-white transition-all" 
                     />
                   </div>
                 ) : (
-                  <div className="w-full bg-slate-50 border border-slate-100 rounded-[1.5rem] p-5 flex items-center space-x-3">
-                    <ShieldCheck size={14} className="text-blue-500" />
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Registrado no Sistema</span>
+                  <div className="w-full bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center space-x-2">
+                    <ShieldCheck size={12} className="text-blue-500" />
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Registrado</span>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status de Presença</label>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
                 <button 
                   disabled={!isAdmin} 
                   onClick={() => onUpdate(loc.integranteId, { confirmacao: !loc.confirmacao })} 
-                  className={`w-full py-5 rounded-[1.5rem] border text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${
+                  className={`w-full py-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${
                     loc.confirmacao 
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-500/5' 
+                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
                     : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-blue-200'
                   }`}
                 >
-                  {loc.confirmacao ? 'Confirmado' : 'Pendente'}
+                  {loc.confirmacao ? 'OK' : 'Pendente'}
                 </button>
               </div>
             </div>
 
             {/* Notas e Briefing Técnico */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center">
-                <Info size={14} className="mr-2 text-blue-500" /> 
-                {isAdmin ? 'Briefing para o Integrante' : 'Instruções da Produção'}
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center">
+                <Info size={12} className="mr-2 text-blue-500" /> 
+                {isAdmin ? 'Briefing' : 'Instruções'}
               </label>
               {isAdmin ? (
                 <textarea 
                   value={loc.note || ''} 
                   onChange={e => onUpdate(loc.integranteId, { note: e.target.value })} 
-                  placeholder="Ex: Trazer figurino preto, chegar 60min antes para passagem de som..."
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-[2rem] p-6 text-slate-700 font-medium text-xs outline-none focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white transition-all resize-none h-32 leading-relaxed placeholder:text-slate-300"
+                  placeholder="Instruções específicas..."
+                  className="w-full bg-slate-50/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium text-[11px] outline-none focus:border-blue-500 focus:bg-white transition-all resize-none h-24 leading-relaxed placeholder:text-slate-300"
                 />
               ) : (
-                <div className={`w-full p-6 rounded-[2rem] border italic text-xs leading-relaxed ${
+                <div className={`w-full p-4 rounded-xl border italic text-[11px] leading-relaxed ${
                   loc.note ? 'bg-blue-50 border-blue-100 text-slate-600' : 'bg-slate-50 border-slate-50 text-slate-400'
                 }`}>
-                  {loc.note || 'Nenhuma instrução específica para este show foi registrada até o momento.'}
+                  {loc.note || 'Nenhuma instrução registrada.'}
                 </div>
               )}
             </div>

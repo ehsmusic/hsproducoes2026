@@ -100,58 +100,55 @@ const Clients: React.FC = () => {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando Base...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map(client => (
-            <div key={client.uid} className="bg-white border border-slate-100 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all group shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_25px_60px_-15px_rgba(59,130,246,0.15)] flex flex-col justify-between h-full relative overflow-hidden">
+            <div key={client.uid} className="bg-white border border-slate-100 rounded-2xl p-6 hover:border-blue-500/30 transition-all group shadow-sm hover:shadow-md flex flex-col justify-between h-full relative overflow-hidden">
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-5">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden shadow-sm p-1">
-                      <img src={client.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover rounded-xl" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden shadow-sm p-1">
+                      <img src={client.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">{client.displayName}</h3>
-                      <div className="flex items-center text-[9px] font-black text-blue-600 uppercase tracking-widest mt-1">
-                        <ShieldCheck size={12} className="mr-1.5" /> Cliente Verificado
+                      <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors line-clamp-1">{client.displayName}</h3>
+                      <div className="flex items-center text-[8px] font-black text-blue-600 uppercase tracking-widest mt-0.5">
+                        <ShieldCheck size={10} className="mr-1" /> Cliente HS
                       </div>
                     </div>
                   </div>
                   {isAdmin && (
                     <button 
                       onClick={() => handleEditClick(client)}
-                      className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-blue-600 hover:bg-white border border-slate-100 rounded-xl transition-all active:scale-90"
+                      className="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-blue-600 hover:bg-white border border-slate-100 rounded-lg transition-all active:scale-90"
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={14} />
                     </button>
                   )}
                 </div>
                 
-                <div className="space-y-4 mb-10 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-50">
-                  <div className="flex items-center text-xs font-bold text-slate-500">
-                    <Mail size={16} className="mr-3 text-blue-500/50 flex-shrink-0" /> <span className="truncate">{client.email}</span>
+                <div className="space-y-3 mb-8 bg-slate-50/50 p-4 rounded-xl border border-slate-50">
+                  <div className="flex items-center text-[11px] font-bold text-slate-500">
+                    <Mail size={14} className="mr-3 text-blue-500/50 flex-shrink-0" /> <span className="truncate">{client.email}</span>
                   </div>
-                  <div className="flex items-center text-xs font-bold text-slate-500">
-                    <Phone size={16} className="mr-3 text-blue-500/50 flex-shrink-0" /> {client.phoneNumber || "WhatsApp não informado"}
-                  </div>
-                  <div className="flex items-center text-xs font-bold text-slate-500">
-                    <MapPin size={16} className="mr-3 text-blue-500/50 flex-shrink-0" /> <span className="truncate">{client.endereco || "Localização não informada"}</span>
+                  <div className="flex items-center text-[11px] font-bold text-slate-500">
+                    <Phone size={14} className="mr-3 text-blue-500/50 flex-shrink-0" /> {client.phoneNumber || "N/A"}
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-6 border-t border-slate-50 relative z-10">
+              <div className="flex gap-3 pt-5 border-t border-slate-50 relative z-10">
                 <Link 
                   to={`/clients/${client.uid}`}
-                  className="flex-1 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all text-center flex items-center justify-center shadow-lg shadow-blue-500/20 active:scale-95"
+                  className="flex-1 py-3 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all text-center flex items-center justify-center shadow-lg shadow-blue-500/20 active:scale-95"
                 >
-                  <ChevronRight size={16} className="mr-2" /> Dossiê Completo
+                  <ChevronRight size={14} className="mr-1" /> Dossiê
                 </Link>
                 {isAdmin && (
                   <button 
                     onClick={() => handleDelete(client.uid)}
-                    className="w-12 h-12 bg-white border border-slate-100 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all flex items-center justify-center active:scale-95"
+                    className="w-10 h-10 bg-white border border-slate-100 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all flex items-center justify-center active:scale-95"
                   >
-                    <Trash2 size={20} />
+                    <Trash2 size={16} />
                   </button>
                 )}
               </div>

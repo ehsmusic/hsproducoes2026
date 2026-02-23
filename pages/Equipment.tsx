@@ -154,19 +154,19 @@ const Equipment: React.FC = () => {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Auditoria de Patrimônio...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {filteredItems.map(item => (
-            <div key={item.id} className="bg-white border border-slate-100 rounded-[3rem] overflow-hidden group hover:border-blue-500/30 transition-all shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_25px_60px_-15px_rgba(59,130,246,0.15)] flex flex-col">
-              <div className="h-48 bg-slate-50 relative overflow-hidden flex items-center justify-center">
+            <div key={item.id} className="bg-white border border-slate-100 rounded-2xl overflow-hidden group hover:border-blue-500/30 transition-all shadow-sm hover:shadow-md flex flex-col">
+              <div className="h-40 bg-slate-50 relative overflow-hidden flex items-center justify-center">
                 {item.photoUrlEquipamento ? (
                   <img src={item.photoUrlEquipamento} alt={item.displayName} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-200">
-                    <Speaker size={64} />
+                    <Speaker size={48} />
                   </div>
                 )}
-                <div className="absolute top-4 right-4">
-                  <span className={`px-4 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest border shadow-sm ${
+                <div className="absolute top-3 right-3">
+                  <span className={`px-2 py-1 rounded-full text-[6px] font-black uppercase tracking-widest border shadow-sm ${
                     item.statusEquipamento === EquipmentStatus.OPERANDO 
                       ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
                       : "bg-amber-50 text-amber-600 border-amber-100"
@@ -176,28 +176,28 @@ const Equipment: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-8 flex-1 flex flex-col justify-between space-y-8">
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-6">
                 <div>
-                  <h4 className="text-xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">{item.displayName}</h4>
-                  <div className="flex items-center space-x-2 mt-3">
-                    <div className="w-1 h-3 bg-blue-500 rounded-full"></div>
-                    <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">Patrimônio HS • {new Date(item.createdAt).toLocaleDateString()}</p>
+                  <h4 className="text-sm font-black text-slate-900 tracking-tight leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">{item.displayName}</h4>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <div className="w-1 h-2 bg-blue-500 rounded-full"></div>
+                    <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Patrimônio HS</p>
                   </div>
                 </div>
 
                 {isAdmin && (
-                  <div className="flex gap-3 pt-6 border-t border-slate-50">
+                  <div className="flex gap-2 pt-4 border-t border-slate-50">
                     <button 
                       onClick={() => handleEdit(item)}
-                      className="flex-1 flex items-center justify-center space-x-2 py-3 bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-500/20 text-slate-400 hover:text-blue-600 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95"
+                      className="flex-1 flex items-center justify-center space-x-2 py-2 bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-500/20 text-slate-400 hover:text-blue-600 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95"
                     >
-                      <Edit2 size={14} /> <span>Editar</span>
+                      <Edit2 size={12} /> <span>Editar</span>
                     </button>
                     <button 
                       onClick={() => handleDelete(item.id!)}
-                      className="w-12 h-12 flex items-center justify-center bg-slate-50 border border-slate-100 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all active:scale-95"
+                      className="w-8 h-8 flex items-center justify-center bg-slate-50 border border-slate-100 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-95"
                     >
-                      <Trash2 size={18} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 )}

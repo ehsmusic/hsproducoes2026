@@ -77,23 +77,23 @@ const Integrantes: React.FC = () => {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sincronizando Elenco...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {members.map(member => (
-            <div key={member.uid} className="bg-white border border-slate-100 rounded-[3rem] p-8 hover:border-blue-500/30 transition-all shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] hover:shadow-[0_25px_60px_-15px_rgba(59,130,246,0.15)] relative overflow-hidden group flex flex-col justify-between h-full">
-              <div className="absolute -top-4 -right-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
-                <Music size={140} className="text-slate-900" />
+            <div key={member.uid} className="bg-white border border-slate-100 rounded-2xl p-6 hover:border-blue-500/30 transition-all shadow-sm hover:shadow-md relative overflow-hidden group flex flex-col justify-between h-full">
+              <div className="absolute -top-2 -right-2 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity duration-700">
+                <Music size={100} className="text-slate-900" />
               </div>
               
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center space-x-5">
-                    <div className="w-16 h-16 rounded-[1.5rem] bg-slate-50 p-1 border border-slate-100 shadow-sm overflow-hidden flex-shrink-0">
-                      <img src={member.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover rounded-xl" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 p-1 border border-slate-100 shadow-sm overflow-hidden flex-shrink-0">
+                      <img src={member.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">{member.displayName}</h3>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border ${
+                      <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">{member.displayName}</h3>
+                      <div className="flex items-center space-x-2 mt-0.5">
+                        <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest border ${
                           member.role === UserRole.ADMIN ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-slate-50 text-slate-400 border-slate-100'
                         }`}>
                           {member.role}
@@ -104,16 +104,16 @@ const Integrantes: React.FC = () => {
                   {isAdmin && (
                     <button 
                       onClick={() => handleEditClick(member)}
-                      className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-blue-600 hover:bg-white border border-slate-100 rounded-xl transition-all active:scale-90 shadow-sm"
+                      className="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-300 hover:text-blue-600 hover:bg-white border border-slate-100 rounded-lg transition-all active:scale-90 shadow-sm"
                     >
-                      <Edit2 size={18} />
+                      <Edit2 size={14} />
                     </button>
                   )}
                 </div>
 
-                <div className="mb-8 p-4 bg-slate-50/50 rounded-[1.5rem] border border-slate-50 relative z-10">
-                  <div className="flex items-center text-[9px] font-black text-blue-600 uppercase tracking-[0.2em]">
-                    <Star size={12} className="mr-2" />
+                <div className="mb-6 p-3 bg-slate-50/50 rounded-xl border border-slate-50 relative z-10">
+                  <div className="flex items-center text-[8px] font-black text-blue-600 uppercase tracking-[0.2em]">
+                    <Star size={10} className="mr-2" />
                     {member.tipoIntegrante || 'Pendente'}
                     {member.funcao && member.tipoIntegrante !== 'Dançarina' && (
                       <>
@@ -124,19 +124,19 @@ const Integrantes: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-4 mb-10 relative z-10">
-                  <div className="flex items-center text-xs font-bold text-slate-500">
-                    <Phone size={16} className="mr-3 text-blue-500/40" /> {member.phoneNumber || "Sem WhatsApp"}
+                <div className="space-y-3 mb-8 relative z-10">
+                  <div className="flex items-center text-[11px] font-bold text-slate-500">
+                    <Phone size={14} className="mr-3 text-blue-500/40" /> {member.phoneNumber || "Sem WhatsApp"}
                   </div>
-                  <div className="flex items-center text-xs font-bold text-slate-500">
-                    <MapPin size={16} className="mr-3 text-blue-500/40" /> <span className="truncate">{member.endereco || "Não informado"}</span>
+                  <div className="flex items-center text-[11px] font-bold text-slate-500">
+                    <MapPin size={14} className="mr-3 text-blue-500/40" /> <span className="truncate">{member.endereco || "Não informado"}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-4 relative z-10 pt-6 border-t border-slate-50">
-                <button className="flex-1 py-4 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-500/20 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">Agenda</button>
-                <button className="flex-1 py-4 bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 hover:border-emerald-500/20 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">Cachês</button>
+              <div className="flex gap-3 relative z-10 pt-5 border-t border-slate-50">
+                <button className="flex-1 py-3 bg-white border border-slate-100 text-slate-400 hover:text-blue-600 hover:border-blue-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">Agenda</button>
+                <button className="flex-1 py-3 bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 hover:border-emerald-500/20 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-sm">Cachês</button>
               </div>
             </div>
           ))}
