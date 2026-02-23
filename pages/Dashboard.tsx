@@ -59,7 +59,13 @@ const Dashboard: React.FC = () => {
           qEvents = query(eventsRef, where('integrantesIds', 'array-contains', userProfile.uid), orderBy('dataEvento', 'asc'), limit(5));
         }
         const eventsSnapshot = await getDocs(qEvents);
-        setNextEvents(eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as object } as HSEvent)));
+        const fetchedEvents = eventsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as object } as HSEvent));
+        
+        // Filter out RECUSADO, CANCELADO, CONCLUIDO
+        const hiddenStatuses = [EventStatus.RECUSADO, EventStatus.CANCELADO, EventStatus.CONCLUIDO];
+        const activeEvents = fetchedEvents.filter(e => !hiddenStatuses.includes(e.status));
+        
+        setNextEvents(activeEvents);
 
         // 2. STATS
         if (isRole(UserRole.ADMIN)) {
