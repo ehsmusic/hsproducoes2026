@@ -41,6 +41,7 @@ import Finance from './pages/Finance';
 import FinanceDetail from './pages/FinanceDetail';
 import Profile from './pages/Profile';
 import Confirmacoes from './pages/Confirmacoes';
+import HeleAssistant from './src/components/HeleAssistant';
 
 export const LOGO_URL = "https://res.cloudinary.com/dvq0tmbil/image/upload/v1770346599/logoHSBlack_affzmc.png";
 export const DEFAULT_AVATAR = "https://i.ibb.co/pjTnM2NQ/avatar-Sucesso.png";
@@ -234,6 +235,7 @@ const MainLayout: React.FC = () => {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
+      <HeleAssistant />
     </div>
   );
 };
