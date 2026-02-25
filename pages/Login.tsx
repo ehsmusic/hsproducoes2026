@@ -2,9 +2,15 @@
 import React, { useState } from 'react';
 import { useAuth, LOGO_URL } from '../App';
 import { useNavigate, useLocation } from 'react-router';
-import { Chrome, Mail, Lock, Loader2, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from '@firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { collection, query, where, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
+import { UserRole, EventStatus, ShowType, HSEvent, UserProfile } from '../types';
+import { DEFAULT_AVATAR } from '../App';
+import { 
+  Chrome, Mail, Lock, Loader2, ShieldCheck, CheckCircle2, 
+  Calendar, Clock, MapPin, Music, Phone, User, X, Send, Sparkles, Info 
+} from 'lucide-react';
 
 const Login: React.FC = () => {
   const { loginWithGoogle, currentUser } = useAuth();
@@ -16,6 +22,20 @@ const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [resetSent, setResetSent] = useState(false);
+  const [isRequestShow, setIsRequestShow] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [requestShowData, setRequestShowData] = useState({
+    email: '',
+    displayName: '',
+    telefone: '',
+    data: '',
+    hora: '',
+    tipo: 'Casamento' as ShowType,
+    local: '',
+    duracao: 2,
+    som: true
+  });
 
   const from = location.state?.from?.pathname || '/';
 
@@ -79,6 +99,95 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRequestShow = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // 1. Verificar se o usuário já existe na coleção 'users'
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('email', '==', requestShowData.email));
+      const querySnapshot = await getDocs(q);
+      
+      let uid = '';
+      const password = generatePassword();
+
+      if (querySnapshot.empty) {
+        // Criar novo usuário no Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, requestShowData.email, password);
+        uid = userCredential.user.uid;
+
+        // Criar perfil na coleção 'users'
+        const newProfile: UserProfile = {
+          uid,
+          email: requestShowData.email,
+          displayName: requestShowData.displayName,
+          role: UserRole.CONTRATANTE,
+          photoURL: DEFAULT_AVATAR,
+          phoneNumber: requestShowData.telefone,
+          pixKey: '',
+          endereco: ''
+        };
+        await setDoc(doc(db, 'users', uid), newProfile);
+      } else {
+        // Usuário já existe, mas não podemos logar ele sem senha.
+        setError('Este e-mail já possui uma conta. Por favor, faça login para solicitar o show.');
+        setLoading(false);
+        return;
+      }
+
+      // 2. Criar o Evento
+      const eventData: Partial<HSEvent> = {
+        createdAt: new Date().toISOString(),
+        titulo: `Show: ${requestShowData.displayName}`,
+        tipo: requestShowData.tipo,
+        duracao: requestShowData.duracao,
+        dataEvento: requestShowData.data,
+        horaEvento: requestShowData.hora,
+        local: requestShowData.local,
+        enderecoEvento: '',
+        publicoEstimado: 0,
+        somContratado: requestShowData.som,
+        alimentacaoInclusa: false,
+        observacoes: 'Solicitação via formulário rápido sem login.',
+        contratanteId: uid,
+        status: EventStatus.SOLICITADO,
+        integrantesIds: [],
+        confirmedIntegrantes: [],
+        payments: []
+      };
+
+      await addDoc(collection(db, 'events'), eventData);
+
+      // 3. Sucesso
+      setGeneratedPassword(password);
+      setShowSuccessModal(true);
+      
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Este e-mail já está cadastrado. Por favor, faça login.');
+      } else {
+        setError('Erro ao processar solicitação. Tente novamente.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generatePassword = () => {
+    return "HS" + Math.random().toString(36).slice(-6).toUpperCase();
+  };
+
+  const maskPhone = (value: string) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .replace(/(-\d{4})\d+?$/, '$1');
   };
 
   return (
@@ -220,8 +329,237 @@ const Login: React.FC = () => {
               {isRegister ? 'Fazer Login' : 'Solicitar Acesso'}
             </button>
           </p>
+
+          <div className="mt-8 pt-8 border-t border-slate-50 flex flex-col items-center">
+            <button
+              onClick={() => setIsRequestShow(true)}
+              className="text-[9px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-[0.3em] transition-all flex items-center space-x-2 group"
+            >
+              <Sparkles size={14} className="group-hover:animate-pulse" />
+              <span>Solicitar Show sem Login</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Modal de Solicitação Rápida */}
+      {isRequestShow && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-fade-in" onClick={() => setIsRequestShow(false)}></div>
+          
+          <div className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl border border-white overflow-hidden animate-fade-in max-h-[90vh] flex flex-col">
+            <header className="p-8 border-b border-slate-50 flex items-center justify-between bg-white flex-shrink-0">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                  <Sparkles size={24} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Solicitação Rápida</h3>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Reserve sua data em segundos</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsRequestShow(false)}
+                className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-slate-900 rounded-xl bg-slate-50 hover:bg-white border border-slate-100 transition-all active:scale-95"
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-8 sm:p-10 space-y-10 scrollbar-hide">
+              <form id="request-show-form" onSubmit={handleRequestShow} className="space-y-10">
+                
+                {/* Identificação */}
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-3 text-slate-900 mb-2">
+                    <User size={18} className="text-blue-600" />
+                    <h4 className="text-xs font-black uppercase tracking-widest">Sua Identificação</h4>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">E-mail *</label>
+                      <input 
+                        required
+                        type="email"
+                        value={requestShowData.email}
+                        onChange={e => setRequestShowData({...requestShowData, email: e.target.value})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                        placeholder="seu@email.com"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nome Completo *</label>
+                      <input 
+                        required
+                        value={requestShowData.displayName}
+                        onChange={e => setRequestShowData({...requestShowData, displayName: e.target.value})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                        placeholder="Como devemos te chamar?"
+                      />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp / Telefone *</label>
+                      <input 
+                        required
+                        value={requestShowData.telefone}
+                        onChange={e => setRequestShowData({...requestShowData, telefone: maskPhone(e.target.value)})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                        placeholder="(00) 00000-0000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dados do Show */}
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-3 text-slate-900 mb-2">
+                    <Music size={18} className="text-blue-600" />
+                    <h4 className="text-xs font-black uppercase tracking-widest">Dados do Show</h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Data do Evento *</label>
+                      <input 
+                        required
+                        type="date"
+                        value={requestShowData.data}
+                        onChange={e => setRequestShowData({...requestShowData, data: e.target.value})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Horário *</label>
+                      <input 
+                        required
+                        type="time"
+                        value={requestShowData.hora}
+                        onChange={e => setRequestShowData({...requestShowData, hora: e.target.value})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo de Evento *</label>
+                      <select 
+                        required
+                        value={requestShowData.tipo}
+                        onChange={e => setRequestShowData({...requestShowData, tipo: e.target.value as ShowType})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold appearance-none"
+                      >
+                        <option value="Casamento">Casamento</option>
+                        <option value="Aniversário">Aniversário</option>
+                        <option value="Formatura">Formatura</option>
+                        <option value="Confraternização">Confraternização</option>
+                        <option value="Outros">Outros</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Duração (Horas)</label>
+                      <input 
+                        type="number"
+                        step="0.5"
+                        value={requestShowData.duracao}
+                        onChange={e => setRequestShowData({...requestShowData, duracao: Number(e.target.value)})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                    <div className="sm:col-span-2 space-y-2">
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Local do Evento *</label>
+                      <input 
+                        required
+                        value={requestShowData.local}
+                        onChange={e => setRequestShowData({...requestShowData, local: e.target.value})}
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                        placeholder="Nome do Buffet, Chácara ou Espaço"
+                      />
+                    </div>
+                    
+                    <div className="sm:col-span-2">
+                      <button 
+                        type="button"
+                        onClick={() => setRequestShowData({...requestShowData, som: !requestShowData.som})}
+                        className={`w-full flex items-center p-6 rounded-2xl border transition-all text-left ${requestShowData.som ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                      >
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${requestShowData.som ? 'bg-white/20' : 'bg-white shadow-sm'}`}>
+                          {requestShowData.som ? <CheckCircle2 size={16} /> : <div className="w-2 h-2 rounded-full bg-slate-200" />}
+                        </div>
+                        <div className="ml-4">
+                          <p className="text-[10px] font-black uppercase tracking-widest">Sonorização HS</p>
+                          <p className={`text-[8px] font-bold uppercase mt-0.5 tracking-widest ${requestShowData.som ? 'text-blue-100' : 'text-slate-400'}`}>
+                            {requestShowData.som ? 'Equipamento Incluso' : 'Já possuo sonorização'}
+                          </p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <footer className="p-8 border-t border-slate-50 bg-white flex flex-col sm:flex-row gap-4 flex-shrink-0">
+              <button 
+                type="button"
+                onClick={() => setIsRequestShow(false)}
+                className="flex-1 py-5 bg-white text-slate-400 border border-slate-200 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:text-slate-900 transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit"
+                form="request-show-form"
+                disabled={loading}
+                className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-blue-500/20 flex items-center justify-center space-x-3 hover:bg-blue-700 transition-all disabled:opacity-50"
+              >
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                <span>{loading ? 'Processando...' : 'Solicitar Show Agora'}</span>
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Sucesso com Senha */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl animate-fade-in"></div>
+          
+          <div className="relative w-full max-w-lg bg-white rounded-[3rem] shadow-2xl border border-white overflow-hidden animate-fade-in p-10 text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-[2rem] bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-inner">
+                <CheckCircle2 size={48} />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">Show Solicitado!</h3>
+              <p className="text-slate-500 font-medium text-sm leading-relaxed">
+                Sua solicitação foi enviada com sucesso. Criamos uma conta para você acompanhar o status do seu evento.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 space-y-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Sua Chave de Acesso Provisória</p>
+              <div className="text-4xl font-black text-blue-600 tracking-[0.2em] font-mono select-all">
+                {generatedPassword}
+              </div>
+              <div className="flex items-center justify-center space-x-2 text-amber-600 bg-amber-50 py-2 px-4 rounded-full">
+                <Info size={14} />
+                <span className="text-[9px] font-black uppercase tracking-widest">Guarde esta senha com segurança!</span>
+              </div>
+            </div>
+
+            <div className="pt-4">
+              <button 
+                onClick={() => navigate(from, { replace: true })}
+                className="w-full py-6 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] shadow-xl hover:bg-slate-800 transition-all active:scale-95"
+              >
+                Acessar meu Painel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

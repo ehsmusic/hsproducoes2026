@@ -9,10 +9,11 @@ let genAI: GoogleGenAI | null = null;
 
 function getGenAI() {
   if (!genAI) {
-    // Try process.env (Node/Platform) or import.meta.env (Vite/Client)
-    const apiKey = (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '') || import.meta.env.VITE_GEMINI_API_KEY;
+    // Vite requires VITE_ prefix for client-side environment variables
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not set. Please configure it in your environment variables.");
+      throw new Error("VITE_GEMINI_API_KEY is not set. Please configure it in your environment variables with the VITE_ prefix.");
     }
     genAI = new GoogleGenAI({ apiKey });
   }
