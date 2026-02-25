@@ -39,7 +39,7 @@ const Login: React.FC = () => {
 
   const from = location.state?.from?.pathname || '/';
 
-  if (currentUser) {
+  if (currentUser && !showSuccessModal) {
     navigate(from, { replace: true });
     return null;
   }
@@ -164,6 +164,7 @@ const Login: React.FC = () => {
 
       // 3. Sucesso
       setGeneratedPassword(password);
+      setIsRequestShow(false);
       setShowSuccessModal(true);
       
     } catch (err: any) {
@@ -540,8 +541,19 @@ const Login: React.FC = () => {
 
             <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 space-y-4">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Sua Chave de Acesso Provisória</p>
-              <div className="text-4xl font-black text-blue-600 tracking-[0.2em] font-mono select-all">
-                {generatedPassword}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-4xl font-black text-blue-600 tracking-[0.2em] font-mono select-all">
+                  {generatedPassword}
+                </div>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedPassword);
+                    alert("Senha copiada para a área de transferência!");
+                  }}
+                  className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest flex items-center space-x-2"
+                >
+                  <span>Copiar Senha</span>
+                </button>
               </div>
               <div className="flex items-center justify-center space-x-2 text-amber-600 bg-amber-50 py-2 px-4 rounded-full">
                 <Info size={14} />
