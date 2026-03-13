@@ -66,8 +66,8 @@ const Integrantes: React.FC = () => {
             <Users size={16} />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Time & Elenco HS</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Equipe</h1>
-          <p className="text-slate-500 font-bold mt-2">Músicos, Dançarinas e Produção Executiva.</p>
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">Equipe</h1>
+          <p className="text-slate-400 text-sm font-medium mt-1">Músicos, Dançarinas e Produção Executiva.</p>
         </div>
       </div>
 
@@ -91,7 +91,7 @@ const Integrantes: React.FC = () => {
                       <img src={member.photoURL || "/avatar.png"} alt="" className="w-full h-full object-cover rounded-lg" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">{member.displayName}</h3>
+                      <h3 className="text-base font-black text-slate-900 tracking-tight group-hover:text-blue-600 transition-colors">{member.displayName}</h3>
                       <div className="flex items-center space-x-2 mt-0.5">
                         <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest border ${
                           member.role === UserRole.ADMIN ? 'bg-purple-50 text-purple-600 border-purple-100' : 'bg-slate-50 text-slate-400 border-slate-100'

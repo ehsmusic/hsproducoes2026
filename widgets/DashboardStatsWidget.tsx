@@ -28,8 +28,8 @@ const DashboardStatsWidget: React.FC<StatsProps> = ({
         </div>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label1}</p>
         <div className="flex items-baseline space-x-1 mt-2">
-          {isCurrency1 && <span className="text-lg font-black text-slate-300 tracking-tighter">R$</span>}
-          <p className="text-4xl font-black text-slate-900 tracking-tighter">
+          {isCurrency1 && <span className="text-base font-black text-slate-300 tracking-tighter">R$</span>}
+          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
             {isCurrency1 ? value1.toLocaleString('pt-BR') : value1}
           </p>
         </div>
@@ -44,7 +44,7 @@ const DashboardStatsWidget: React.FC<StatsProps> = ({
           <ArrowUpRight className="text-slate-200 group-hover:text-emerald-500 transition-colors" size={18} />
         </div>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label2}</p>
-        <p className="text-4xl font-black text-slate-900 mt-2 tracking-tighter">{value2}</p>
+        <p className="text-2xl md:text-3xl font-black text-slate-900 mt-2 tracking-tighter">{value2}</p>
       </div>
 
       {/* Card 3 - Pendências */}
@@ -56,7 +56,7 @@ const DashboardStatsWidget: React.FC<StatsProps> = ({
           <ArrowUpRight className="text-slate-200 group-hover:text-amber-500 transition-colors" size={18} />
         </div>
         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label3}</p>
-        <p className="text-4xl font-black text-slate-900 mt-2 tracking-tighter">{value3}</p>
+        <p className="text-2xl md:text-3xl font-black text-slate-900 mt-2 tracking-tighter">{value3}</p>
       </div>
     </div>
   );

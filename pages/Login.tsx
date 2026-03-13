@@ -205,10 +205,10 @@ const Login: React.FC = () => {
                 className="w-56 object-contain" 
               />
             </div>
-            <h1 className="text-4xl font-black text-slate-900 leading-tight mb-6 tracking-tighter">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-6 tracking-tighter">
               A excelência começa nos <span className="text-blue-600">bastidores.</span>
             </h1>
-            <p className="text-slate-500 text-lg leading-relaxed max-w-sm font-medium">
+            <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-sm font-medium">
               Plataforma de gestão inteligente para a elite da música e produção de eventos.
             </p>
           </div>
@@ -225,22 +225,22 @@ const Login: React.FC = () => {
           </div>
 
           <div className="mb-10 text-center md:text-left">
-            <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tighter">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-2 tracking-tighter">
               {isRegister ? 'Criar Nova Conta' : 'Bem-vindo de volta'}
             </h2>
-            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">
+            <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px]">
               {isRegister ? 'Inicie sua jornada na HS Produções' : 'Acesse seu painel de controle HS'}
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center animate-shake leading-relaxed shadow-sm">
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest rounded-2xl flex items-center animate-shake leading-relaxed shadow-sm">
               {error}
             </div>
           )}
 
           {resetSent && (
-            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-black uppercase tracking-widest rounded-2xl flex items-center space-x-3 animate-fade-in shadow-sm">
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-2xl flex items-center space-x-3 animate-fade-in shadow-sm">
               <CheckCircle2 size={18} />
               <span>Instruções enviadas para seu e-mail!</span>
             </div>
@@ -248,7 +248,7 @@ const Login: React.FC = () => {
 
           <form onSubmit={handleEmailAuth} className="space-y-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Identificação / E-mail</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Identificação / E-mail</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-7 flex items-center pointer-events-none text-slate-300 group-focus-within:text-blue-600 transition-colors">
                   <Mail size={24} />
@@ -258,7 +258,7 @@ const Login: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-16 pr-8 py-7 bg-slate-100/60 border border-slate-200 rounded-[2rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 placeholder-slate-300 font-bold transition-all text-lg"
+                  className="block w-full pl-16 pr-8 py-7 bg-slate-100/60 border border-slate-200 rounded-[2rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 placeholder-slate-300 font-bold transition-all text-base"
                   placeholder="seuemail@empresa.com"
                 />
               </div>
@@ -266,12 +266,12 @@ const Login: React.FC = () => {
 
             <div className="space-y-3">
               <div className="flex justify-between items-center pr-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Chave de Acesso</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Chave de Acesso</label>
                 {!isRegister && (
                   <button 
                     type="button"
                     onClick={handleResetPassword}
-                    className="text-[9px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors"
+                    className="text-[8px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors"
                   >
                     Esqueci minha chave
                   </button>
@@ -286,7 +286,7 @@ const Login: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-16 pr-8 py-7 bg-slate-100/60 border border-slate-200 rounded-[2rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 placeholder-slate-300 font-bold transition-all text-lg"
+                  className="block w-full pl-16 pr-8 py-7 bg-slate-100/60 border border-slate-200 rounded-[2rem] focus:ring-8 focus:ring-blue-500/5 focus:border-blue-500 focus:bg-white outline-none text-slate-900 placeholder-slate-300 font-bold transition-all text-base"
                   placeholder="••••••••"
                 />
               </div>
@@ -295,7 +295,7 @@ const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-7 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-[13px] uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 active:scale-[0.98] mt-4"
+              className="w-full py-7 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 active:scale-[0.98] mt-4"
             >
               {loading ? <Loader2 className="animate-spin" size={24} /> : <span>{isRegister ? 'Finalizar Cadastro' : 'Entrar no Sistema'}</span>}
             </button>
@@ -309,7 +309,7 @@ const Login: React.FC = () => {
           <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="mt-8 w-full flex justify-center items-center py-7 bg-white text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.3em] transition-all duration-300 active:scale-[0.98] shadow-sm hover:shadow-md"
+            className="mt-8 w-full flex justify-center items-center py-7 bg-white text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-[2rem] font-black text-[10px] uppercase tracking-[0.3em] transition-all duration-300 active:scale-[0.98] shadow-sm hover:shadow-md"
           >
             {loading ? (
               <Loader2 className="animate-spin text-blue-600" size={24} />

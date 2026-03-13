@@ -147,8 +147,8 @@ const Events: React.FC = () => {
             <Music size={16} />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Logística HS Produções</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Agenda de Shows</h1>
-          <p className="text-slate-500 font-bold mt-2">Gerencie escalas, locais e o workflow de cada apresentação.</p>
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">Agenda de Shows</h1>
+          <p className="text-slate-400 text-sm font-medium mt-1">Gerencie escalas, locais e o workflow de cada apresentação.</p>
         </div>
         <div className="flex flex-wrap items-center gap-4">
           <button 

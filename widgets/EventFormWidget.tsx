@@ -116,7 +116,7 @@ const EventFormWidget: React.FC<Props> = ({
                 <ShieldCheck size={14} />
                 <span className="text-[10px] font-black uppercase tracking-[0.3em]">Ambiente de Registro HS</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">{title}</h1>
+              <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">{title}</h1>
             </div>
           </div>
 
@@ -125,7 +125,7 @@ const EventFormWidget: React.FC<Props> = ({
               type="submit"
               form="main-event-form"
               disabled={isSubmitting}
-              className="flex items-center space-x-3 px-10 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
+              className="flex items-center space-x-3 px-10 py-5 bg-blue-600 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-blue-500/20 hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
               <span>{isSubmitting ? 'Salvando...' : submitLabel}</span>

@@ -359,7 +359,7 @@ const EventDetails: React.FC = () => {
             <span className="px-4 py-1.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-widest">{event.tipo}</span>
             <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em]">Criado em {new Date(event.createdAt).toLocaleDateString('pt-BR')}</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter truncate leading-none uppercase italic">{event.titulo}</h1>
+          <h1 className="text-xl md:text-3xl font-black text-slate-900 tracking-tighter truncate leading-none uppercase italic">{event.titulo}</h1>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -393,7 +393,7 @@ const EventDetails: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`flex-1 py-4 px-8 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+            className={`flex-1 py-4 px-8 rounded-[2rem] text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
               activeTab === tab.id 
                 ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' 
                 : 'text-slate-400 hover:text-slate-900 hover:bg-white'

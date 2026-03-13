@@ -168,7 +168,7 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
                 className={`flex items-center space-x-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-500 hover:bg-slate-50 hover:text-blue-600'}`}
               >
                 <link.icon size={19} className={`${isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} />
-                <span className={`text-sm font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-90'}`}>{link.name}</span>
+                <span className={`text-xs font-bold tracking-tight ${isActive ? 'opacity-100' : 'opacity-90'}`}>{link.name}</span>
                 {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>}
               </Link>
             );
@@ -181,8 +181,8 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
               <img src={userProfile?.photoURL || DEFAULT_AVATAR} alt="Avatar" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-black truncate text-slate-900 uppercase tracking-tight">{userProfile?.displayName}</p>
-              <p className="text-[9px] text-blue-600 font-black uppercase tracking-widest">{userProfile?.role}</p>
+              <p className="text-[10px] font-black truncate text-slate-900 uppercase tracking-tight">{userProfile?.displayName}</p>
+              <p className="text-[8px] text-blue-600 font-black uppercase tracking-widest">{userProfile?.role}</p>
             </div>
           </div>
           <button
@@ -190,7 +190,7 @@ const Sidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, o
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-xl bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 transition-all duration-300 group shadow-sm"
           >
             <LogOut size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">Encerrar Sessão</span>
+            <span className="text-[9px] font-black uppercase tracking-widest">Encerrar Sessão</span>
           </button>
         </div>
       </div>

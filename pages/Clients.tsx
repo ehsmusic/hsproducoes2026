@@ -78,8 +78,8 @@ const Clients: React.FC = () => {
             <Briefcase size={16} />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Carteira de Clientes</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Contratantes</h1>
-          <p className="text-slate-500 font-bold mt-2">Gestão de parceiros e solicitantes de shows.</p>
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">Contratantes</h1>
+          <p className="text-slate-400 text-sm font-medium mt-1">Gestão de parceiros e solicitantes de shows.</p>
         </div>
       </div>
 

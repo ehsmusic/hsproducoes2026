@@ -157,30 +157,30 @@ const Dashboard: React.FC = () => {
             <Activity size={16} />
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Painel Operacional HS</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+          <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tighter">
             {getGreeting()}, <span className="text-blue-600">{userProfile?.displayName.split(' ')[0]}</span>.
           </h1>
           <div className="flex items-center space-x-3 text-slate-500 font-bold">
             <Calendar size={14} className="text-slate-300" />
-            <span className="text-sm">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+            <span className="text-xs">{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-4">
            {isRole(UserRole.ADMIN) && (
-             <Link to="/events?new=true" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
+             <Link to="/events?new=true" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
                <Plus size={18} className="transition-transform group-hover:rotate-90" />
                <span>Agendar Show</span>
              </Link>
            )}
            {isRole(UserRole.CONTRATANTE) && (
-             <Link to="/events?new=true" className="group bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center space-x-2">
+             <Link to="/events?new=true" className="group bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-emerald-500/20 transition-all active:scale-95 flex items-center space-x-2">
                <DollarSign size={18} />
                <span>Novo Orçamento</span>
              </Link>
            )}
            {isRole(UserRole.INTEGRANTE) && (
-             <Link to="/confirmacoes" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
+             <Link to="/confirmacoes" className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all active:scale-95 flex items-center space-x-2">
                <CheckCircle2 size={18} />
                <span>Verificar Escala</span>
              </Link>

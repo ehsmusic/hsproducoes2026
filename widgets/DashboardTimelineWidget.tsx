@@ -15,7 +15,7 @@ const DashboardTimelineWidget: React.FC<TimelineProps> = ({ events, confirmedSta
       <div className="flex items-center justify-between px-2">
         <div className="flex items-center space-x-3">
           <div className="w-1 h-5 bg-blue-600 rounded-full"></div>
-          <h2 className="text-xl font-black text-slate-900 tracking-tighter uppercase italic">Próximos Shows</h2>
+          <h2 className="text-lg font-black text-slate-900 tracking-tighter uppercase italic">Próximos Shows</h2>
         </div>
         <Link to="/events" className="group flex items-center space-x-1.5 text-[9px] font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-all">
           <span>Agenda Completa</span>
@@ -36,15 +36,15 @@ const DashboardTimelineWidget: React.FC<TimelineProps> = ({ events, confirmedSta
                   <span className="text-[8px] font-black text-slate-400 uppercase leading-none group-hover:text-blue-500">
                     {event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').toLocaleDateString('pt-BR', { month: 'short' }) : '---'}
                   </span>
-                  <span className="text-xl font-black text-slate-900 mt-1 leading-none group-hover:text-blue-600">
+                  <span className="text-lg font-black text-slate-900 mt-1 leading-none group-hover:text-blue-600">
                     {event.dataEvento ? new Date(event.dataEvento + 'T00:00:00').getDate() : '--'}
                   </span>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-black text-base text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight truncate">
+                  <h3 className="font-black text-sm text-slate-900 group-hover:text-blue-600 transition-colors tracking-tight truncate">
                     {event.titulo}
                   </h3>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-slate-400 mt-1 font-bold uppercase tracking-widest">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[9px] text-slate-400 mt-1 font-bold uppercase tracking-widest">
                     <span className="flex items-center"><MapPin size={12} className="mr-1.5 text-blue-500/40" /> {event.local}</span>
                     <span className="flex items-center"><Clock size={12} className="mr-1.5 text-blue-500/40" /> {event.horaEvento || '00:00'}h</span>
                   </div>
